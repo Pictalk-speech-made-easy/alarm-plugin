@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "Alarm",
+    name: "PictalkSpeechMadeEasyAlarm",
     platforms: [.iOS(.v14)],
     products: [
         .library(
-            name: "Alarm",
+            name: "PictalkSpeechMadeEasyAlarm",
             targets: ["AlarmPlugin"])
     ],
     dependencies: [

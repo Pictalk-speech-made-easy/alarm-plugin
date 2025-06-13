@@ -13,17 +13,17 @@
 
     <application>
         <!-- Alarm receiver for handling scheduled alarms -->
-        <receiver android:name="com.yourcompany.alarm.AlarmReceiver"
+        <receiver android:name="org.pictalk.plugin.alarm.AlarmReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <!-- Action receiver for handling notification actions -->
-        <receiver android:name="com.yourcompany.alarm.AlarmActionReceiver"
+        <receiver android:name="org.pictalk.plugin.alarm.AlarmActionReceiver"
             android:enabled="true"
             android:exported="false" />
 
         <!-- Boot receiver for rescheduling alarms after device restart -->
-        <receiver android:name="com.yourcompany.alarm.BootReceiver"
+        <receiver android:name="org.pictalk.plugin.alarm.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">

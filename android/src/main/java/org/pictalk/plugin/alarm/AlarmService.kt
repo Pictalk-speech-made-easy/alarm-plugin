@@ -247,28 +247,48 @@ class AlarmService(private val context: Context) {
     private fun createMediaPlayer(alarmSettings: AlarmSettings): MediaPlayer {
         val mediaPlayer = MediaPlayer()
 
-        val uri = if (alarmSettings.assetAudioPath.startsWith("android.resource://")) {
-            Uri.parse(alarmSettings.assetAudioPath)
-        } else if (alarmSettings.assetAudioPath.startsWith("public/")) {
-            // Handle Capacitor public assets
-            val assetPath = alarmSettings.assetAudioPath
-            Uri.parse("file:///android_asset/$assetPath")
-        } else {
-            // Handle absolute paths or document directory files
-            Uri.fromFile(File(alarmSettings.assetAudioPath))
+        try {
+            when {
+                alarmSettings.assetAudioPath.startsWith("android.resource://") -> {
+                    // Handle raw resources
+                    val uri = Uri.parse(alarmSettings.assetAudioPath)
+                    mediaPlayer.setDataSource(context, uri)
+                }
+                alarmSettings.assetAudioPath.startsWith("public/") -> {
+                    // Handle Capacitor public assets - use AssetManager
+                    val assetManager = context.assets
+                    val assetPath = alarmSettings.assetAudioPath // "public/sounds/alarm.mp3"
+                    val descriptor = assetManager.openFd(assetPath)
+                    mediaPlayer.setDataSource(
+                        descriptor.fileDescriptor,
+                        descriptor.startOffset,
+                        descriptor.length
+                    )
+                    descriptor.close()
+                }
+                else -> {
+                    // Handle absolute paths or document directory files
+                    val uri = Uri.fromFile(File(alarmSettings.assetAudioPath))
+                    mediaPlayer.setDataSource(context, uri)
+                }
+            }
+
+            mediaPlayer.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            mediaPlayer.isLooping = alarmSettings.loopAudio
+            mediaPlayer.prepare()
+
+            return mediaPlayer
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            mediaPlayer.release()
+            throw e
         }
-
-        mediaPlayer.setDataSource(context, uri)
-        mediaPlayer.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-        )
-        mediaPlayer.isLooping = alarmSettings.loopAudio
-        mediaPlayer.prepare()
-
-        return mediaPlayer
     }
 
     private fun startVibration() {

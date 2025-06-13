@@ -154,16 +154,17 @@ class AlarmPlugin : Plugin() {
     
     private fun parseVolumeSettings(obj: JSObject): VolumeSettings {
         val fadeSteps = mutableListOf<VolumeFadeStep>()
-        val fadeStepsArray = obj.getJSONArray("fadeSteps")
-
-        for (i in 0 until fadeStepsArray.length()) {
-            val step = fadeStepsArray.getJSONObject(i)
-            fadeSteps.add(
-                VolumeFadeStep(
-                    time = step.getInt("time"),
-                    volume = step.getDouble("volume").toFloat()
+        if (obj.has("fadeSteps")) {
+            val fadeStepsArray = obj.getJSONArray("fadeSteps")
+            for (i in 0 until fadeStepsArray.length()) {
+                val step = fadeStepsArray.getJSONObject(i)
+                fadeSteps.add(
+                    VolumeFadeStep(
+                        time = step.getInt("time"),
+                        volume = step.getDouble("volume").toFloat()
+                    )
                 )
-            )
+            }
         }
         
         return VolumeSettings(
