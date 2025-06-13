@@ -10,10 +10,9 @@
     "android/src/main/",
     "android/build.gradle",
     "dist/",
-    "ios/Sources",
-    "ios/Tests",
-    "Package.swift",
-    "Alarm.podspec"
+    "ios/Plugin/",
+    "Alarm.podspec",
+    "Package.swift"
   ],
   "author": "",
   "license": "MIT",

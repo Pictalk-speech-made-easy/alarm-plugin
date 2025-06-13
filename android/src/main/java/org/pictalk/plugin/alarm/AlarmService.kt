@@ -246,13 +246,15 @@ class AlarmService(private val context: Context) {
     private fun createMediaPlayer(alarmSettings: AlarmSettings): MediaPlayer {
         val mediaPlayer = MediaPlayer()
 
-        // Set audio source
         val uri = if (alarmSettings.assetAudioPath.startsWith("android.resource://")) {
             Uri.parse(alarmSettings.assetAudioPath)
+        } else if (alarmSettings.assetAudioPath.startsWith("public/")) {
+            // Handle Capacitor public assets
+            val assetPath = alarmSettings.assetAudioPath
+            Uri.parse("file:///android_asset/$assetPath")
         } else {
-            // Handle asset path
-            val assetPath = alarmSettings.assetAudioPath.removePrefix("assets/")
-            Uri.parse("android.resource://${context.packageName}/raw/${assetPath.removeSuffix(".mp3")}")
+            // Handle absolute paths or document directory files
+            Uri.fromFile(File(alarmSettings.assetAudioPath))
         }
 
         mediaPlayer.setDataSource(context, uri)

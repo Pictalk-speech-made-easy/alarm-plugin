@@ -150,10 +150,21 @@ class AlarmRingManager: NSObject {
         }
     }
     
-    private func loadAudioPlayer(assetAudioPath: String) -> AVAudioPlayer? {
-        let audioURL: URL
+    private func getAudioURL(from assetAudioPath: String) -> URL? {
+        var audioURL: URL
         
-        if assetAudioPath.hasPrefix("assets/") || assetAudioPath.hasPrefix("asset/") {
+        if assetAudioPath.hasPrefix("public/") {
+            // Handle Capacitor public assets - they're in the web bundle
+            let filename = String(assetAudioPath.dropFirst(7)) // Remove "public/"
+            
+            // Try to find the file in the public subdirectory
+            guard let bundleURL = Bundle.main.url(forResource: filename, withExtension: nil, subdirectory: "public") else {
+                CAPLog.print("[", AlarmPlugin.tag, "] ", "Audio file not found in public directory: %@", assetAudioPath)
+                return nil
+            }
+            audioURL = bundleURL
+        } else if assetAudioPath.hasPrefix("assets/") || assetAudioPath.hasPrefix("asset/") {
+            // Handle traditional bundle assets
             let filename = String(assetAudioPath.dropFirst(7))
             guard let bundleURL = Bundle.main.url(forResource: filename, withExtension: nil) else {
                 CAPLog.print("[", AlarmPlugin.tag, "] ", "Audio file not found: %@", assetAudioPath)
@@ -161,12 +172,20 @@ class AlarmRingManager: NSObject {
             }
             audioURL = bundleURL
         } else {
+            // Handle document directory or absolute paths
             guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
                 CAPLog.print("[", AlarmPlugin.tag, "] ", "Document directory not found")
                 return nil
             }
             audioURL = documentsDirectory.appendingPathComponent(assetAudioPath)
         }
+        
+        return audioURL
+    }
+    
+    private func loadAudioPlayer(assetAudioPath: String) -> AVAudioPlayer? {
+        let audioURL: URL
+        audioURL = getAudioURL(from: assetAudioPath)!
         
         do {
             let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
