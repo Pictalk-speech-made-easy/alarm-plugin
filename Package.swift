@@ -7,22 +7,22 @@ let package = Package(
     products: [
         .library(
             name: "Alarm",
-            targets: ["CapacitorAlarmPlugin"])
+            targets: ["AlarmPlugin"])
     ],
     dependencies: [
         .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "7.0.0")
     ],
     targets: [
         .target(
-            name: "CapacitorAlarmPlugin",
+            name: "AlarmPlugin",
             dependencies: [
                 .product(name: "Capacitor", package: "capacitor-swift-pm"),
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
-            path: "ios/Sources/CapacitorAlarmPlugin"),
+            path: "ios/Plugin"),
         .testTarget(
-            name: "CapacitorAlarmPluginTests",
-            dependencies: ["CapacitorAlarmPlugin"],
-            path: "ios/Tests/CapacitorAlarmPluginTests")
+            name: "AlarmTests",
+            dependencies: ["AlarmPlugin"],
+            path: "ios/PluginTests")
     ]
 )
