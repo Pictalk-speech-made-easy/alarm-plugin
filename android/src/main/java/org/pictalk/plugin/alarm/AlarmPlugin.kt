@@ -1,296 +1,331 @@
 package org.pictalk.plugin.alarm
 
-import android.Manifest
-import android.app.*
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.media.AudioManager
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import com.getcapacitor.*
+import android.os.Handler
+import android.os.Looper
+import androidx.annotation.NonNull
+import androidx.annotation.Nullable
+import com.getcapacitor.JSArray
+import com.getcapacitor.JSObject
+import com.getcapacitor.Logger
+import com.getcapacitor.Plugin
+import com.getcapacitor.PluginCall
+import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
-import org.json.JSONArray
-import org.json.JSONObject
-import java.text.SimpleDateFormat
-import java.util.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import org.pictalk.plugin.alarm.alarm.AlarmReceiver
+import org.pictalk.plugin.alarm.alarm.AlarmService
+import org.pictalk.plugin.alarm.models.AlarmSettings
+import org.pictalk.plugin.alarm.services.AlarmStorage
+import org.pictalk.plugin.alarm.services.NotificationOnKillService
 
 @CapacitorPlugin(name = "Alarm")
 class AlarmPlugin : Plugin() {
-    
-    private lateinit var alarmManager: AlarmService
-    private val CHANNEL_ID = "alarm_channel"
-    private val REQUEST_CODE_BASE = 1000
-    
+    companion object {
+        private const val TAG = "AlarmPlugin"
+        const val ERROR_UNKNOWN_ERROR = "An unknown error has occurred."
+        const val ERROR_INVALID_ALARM_SETTINGS = "Invalid alarm settings provided."
+        const val ERROR_ALARM_NOT_FOUND = "Alarm not found."
+
+        @Nullable
+        var instance: AlarmPlugin? = null
+    }
+
+    private val alarmIds: MutableList<Int> = mutableListOf()
+    private var notificationOnKillTitle: String = "Your alarms may not ring"
+    private var notificationOnKillBody: String =
+        "You killed the app. Please reopen so your alarms can be rescheduled."
+
+    @Nullable
+    private var implementation: AlarmStorage? = null
+
     override fun load() {
-        super.load()
-        alarmManager = AlarmService(context)
-        createNotificationChannel()
+        implementation = AlarmStorage(context)
+        instance = this
     }
-    
-    @PluginMethod
-    fun init(call: PluginCall) {
-        try {
-            alarmManager.init()
-            call.resolve()
-        } catch (e: Exception) {
-            call.reject("Failed to initialize alarm service", e)
-        }
-    }
-    
+
     @PluginMethod
     fun setAlarm(call: PluginCall) {
         try {
-            val alarmSettingsObj = call.getObject("alarmSettings")
-                ?: return call.reject("alarmSettings is required")
-            
-            val alarmSettings = parseAlarmSettings(alarmSettingsObj)
-            alarmManager.setAlarm(alarmSettings)
-            call.resolve()
+            val alarmSettingsData = call.getObject("alarmSettings")
+                ?: return rejectCall(call, ERROR_INVALID_ALARM_SETTINGS)
+
+            val alarmSettings = AlarmSettings.fromCapacitorData(alarmSettingsData.toJsonObject())
+            setAlarmInternal(alarmSettings)
+            resolveCall(call)
         } catch (e: Exception) {
-            call.reject("Failed to set alarm", e)
+            rejectCall(call, e)
         }
     }
-    
+
     @PluginMethod
     fun stopAlarm(call: PluginCall) {
         try {
-            val alarmId = call.getInt("alarmId") ?: return call.reject("alarmId is required")
-            alarmManager.stopAlarm(alarmId)
-            call.resolve()
+            val alarmId = call.getInt("alarmId") ?: return rejectCall(call, "Missing alarmId")
+            stopAlarmInternal(alarmId)
+            resolveCall(call)
         } catch (e: Exception) {
-            call.reject("Failed to stop alarm", e)
+            rejectCall(call, e)
         }
     }
-    
+
     @PluginMethod
     fun stopAll(call: PluginCall) {
         try {
-            alarmManager.stopAll()
-            call.resolve()
+            implementation?.let { storage ->
+                for (alarm in storage.getSavedAlarms()) {
+                    stopAlarmInternal(alarm.id)
+                }
+            }
+            val alarmIdsCopy = alarmIds.toList()
+            for (alarmId in alarmIdsCopy) {
+                stopAlarmInternal(alarmId)
+            }
+            resolveCall(call)
         } catch (e: Exception) {
-            call.reject("Failed to stop all alarms", e)
+            rejectCall(call, e)
         }
     }
-    
+
     @PluginMethod
     fun isRinging(call: PluginCall) {
         try {
             val alarmId = call.getInt("alarmId")
-            val isRinging = alarmManager.isRinging(alarmId)
-            
+            val ringingAlarmIds = AlarmService.ringingAlarmIds
+
+            val isRinging = if (alarmId == null) {
+                ringingAlarmIds.isNotEmpty()
+            } else {
+                ringingAlarmIds.contains(alarmId)
+            }
+
             val result = JSObject()
             result.put("isRinging", isRinging)
             call.resolve(result)
         } catch (e: Exception) {
-            call.reject("Failed to check ringing status", e)
+            rejectCall(call, e)
         }
     }
-    
+
     @PluginMethod
     fun getAlarms(call: PluginCall) {
         try {
-            val alarms = alarmManager.getAlarms()
-            val alarmsArray = JSONArray()
-            
-            for (alarm in alarms) {
-                alarmsArray.put(alarmSettingsToJson(alarm))
+            implementation?.let { storage ->
+                val savedAlarms = storage.getSavedAlarms()
+                val alarmsArray = JSArray()
+
+                for (alarm in savedAlarms) {
+                    val alarmJson = alarm.toJsonObject()
+                    val alarmJSObject = JSObject()
+                    for ((key, value) in alarmJson) {
+                        alarmJSObject.put(key, value.toString().trim('"'))
+                    }
+                    alarmsArray.put(alarmJSObject)
+                }
+
+                val result = JSObject()
+                result.put("alarms", alarmsArray)
+                call.resolve(result)
+            } ?: run {
+                val result = JSObject()
+                result.put("alarms", JSArray())
+                call.resolve(result)
             }
-            
-            val result = JSObject()
-            result.put("alarms", alarmsArray)
-            call.resolve(result)
         } catch (e: Exception) {
-            call.reject("Failed to get alarms", e)
+            rejectCall(call, e)
         }
     }
-    
+
     @PluginMethod
     fun setWarningNotificationOnKill(call: PluginCall) {
         try {
-            val title = call.getString("title") ?: return call.reject("title is required")
-            val body = call.getString("body") ?: return call.reject("body is required")
-            
-            alarmManager.setWarningNotificationOnKill(title, body)
-            call.resolve()
+            val title = call.getString("title") ?: notificationOnKillTitle
+            val body = call.getString("body") ?: notificationOnKillBody
+
+            notificationOnKillTitle = title
+            notificationOnKillBody = body
+
+            // Re-create if needed
+            turnOffWarningNotificationOnKill()
+            updateWarningNotificationState()
+
+            resolveCall(call)
         } catch (e: Exception) {
-            call.reject("Failed to set warning notification", e)
+            rejectCall(call, e)
         }
     }
-    
-    @PluginMethod
-    fun checkAlarm(call: PluginCall) {
+
+    // Internal implementation methods
+    private fun setAlarmInternal(alarm: AlarmSettings) {
+        if (alarmIds.contains(alarm.id)) {
+            Logger.warn(TAG, "Stopping alarm with identical ID=${alarm.id} before scheduling a new one.")
+            stopAlarmInternal(alarm.id)
+        }
+
+        val alarmIntent = createAlarmIntent(alarm)
+        val delayInSeconds = (alarm.dateTime.time - System.currentTimeMillis()) / 1000
+
+        alarmIds.add(alarm.id)
+        implementation?.saveAlarm(alarm)
+
+        if (delayInSeconds <= 5) {
+            handleImmediateAlarm(alarmIntent, delayInSeconds.toInt())
+        } else {
+            handleDelayedAlarm(alarmIntent, delayInSeconds.toInt(), alarm.id)
+        }
+    }
+
+    private fun stopAlarmInternal(alarmId: Int) {
+        var alarmWasRinging = false
+        if (AlarmService.ringingAlarmIds.contains(alarmId)) {
+            alarmWasRinging = true
+            val stopIntent = Intent(context, AlarmService::class.java)
+            stopIntent.action = "STOP_ALARM"
+            stopIntent.putExtra("id", alarmId)
+            context.stopService(stopIntent)
+        }
+
+        // Intent to cancel the future alarm if it's set
+        val alarmIntent = Intent(context, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            alarmId,
+            alarmIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        // Cancel the future alarm using AlarmManager
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
+
+        alarmIds.remove(alarmId)
+        implementation?.unsaveAlarm(alarmId)
+        updateWarningNotificationState()
+
+        // If the alarm was ringing it is the responsibility of the AlarmService to send the stop
+        // signal to Capacitor.
+        if (!alarmWasRinging) {
+            // Notify about the alarm being stopped
+            notifyAlarmStopped(alarmId)
+        }
+    }
+
+    private fun createAlarmIntent(alarm: AlarmSettings): Intent {
+        val alarmIntent = Intent(context, AlarmReceiver::class.java)
+        alarmIntent.putExtra("id", alarm.id)
+        alarmIntent.putExtra("alarmSettings", Json.encodeToString(alarm))
+        return alarmIntent
+    }
+
+    private fun handleImmediateAlarm(intent: Intent, delayInSeconds: Int) {
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed({
+            context.sendBroadcast(intent)
+        }, delayInSeconds * 1000L)
+    }
+
+    private fun handleDelayedAlarm(intent: Intent, delayInSeconds: Int, id: Int) {
         try {
-            alarmManager.checkAlarms()
-            call.resolve()
+            val triggerTime = System.currentTimeMillis() + delayInSeconds * 1000L
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                id,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager
+                ?: throw IllegalStateException("AlarmManager not available")
+
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerTime,
+                pendingIntent
+            )
+
+            updateWarningNotificationState()
+        } catch (e: ClassCastException) {
+            Logger.error(TAG, "AlarmManager service type casting failed", e)
+        } catch (e: IllegalStateException) {
+            Logger.error(TAG, "AlarmManager service not available", e)
         } catch (e: Exception) {
-            call.reject("Failed to check alarms", e)
+            Logger.error(TAG, "Error in handling delayed alarm", e)
         }
     }
-    
-    private fun parseAlarmSettings(obj: JSObject): AlarmSettings {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        
-        return AlarmSettings(
-            id = obj.getInteger("id") ?: throw IllegalArgumentException("id is required"),
-            dateTime = dateFormat.parse(obj.getString("dateTime") ?: throw IllegalArgumentException("dateTime is required"))
-                ?: throw IllegalArgumentException("Invalid dateTime format"),
-            assetAudioPath = obj.getString("assetAudioPath") ?: throw IllegalArgumentException("assetAudioPath is required"),
-            volumeSettings = parseVolumeSettings(obj.getJSObject("volumeSettings") ?: JSObject()),
-            notificationSettings = parseNotificationSettings(obj.getJSObject("notificationSettings") ?: JSObject()),
-            loopAudio = obj.getBoolean("loopAudio", true) ?: true,
-            vibrate = obj.getBoolean("vibrate", true) ?: true,
-            warningNotificationOnKill = obj.getBoolean("warningNotificationOnKill", true) ?: true,
-            androidFullScreenIntent = obj.getBoolean("androidFullScreenIntent", true) ?: true,
-            allowAlarmOverlap = obj.getBoolean("allowAlarmOverlap", false) ?: false,
-            androidStopAlarmOnTermination = obj.getBoolean("androidStopAlarmOnTermination", true) ?: true,
-            payload = obj.getString("payload")
-        )
-    }
-    
-    private fun parseVolumeSettings(obj: JSObject): VolumeSettings {
-        val fadeSteps = mutableListOf<VolumeFadeStep>()
-        if (obj.has("fadeSteps")) {
-            val fadeStepsArray = obj.getJSONArray("fadeSteps")
-            for (i in 0 until fadeStepsArray.length()) {
-                val step = fadeStepsArray.getJSONObject(i)
-                fadeSteps.add(
-                    VolumeFadeStep(
-                        time = step.getInt("time"),
-                        volume = step.getDouble("volume").toFloat()
-                    )
-                )
+
+    private fun updateWarningNotificationState() {
+        implementation?.let { storage ->
+            if (storage.getSavedAlarms().any { it.warningNotificationOnKill }) {
+                turnOnWarningNotificationOnKill()
+            } else {
+                turnOffWarningNotificationOnKill()
             }
         }
-        
-        return VolumeSettings(
-            volume = obj.getDouble("volume").toFloat(),
-            fadeDuration = obj.getInteger("fadeDuration"),
-            fadeSteps = fadeSteps,
-            volumeEnforced = obj.getBoolean("volumeEnforced", false) ?: false
-        )
     }
-    
-    private fun parseNotificationSettings(obj: JSObject): NotificationSettings {
-        return NotificationSettings(
-            title = obj.getString("title") ?: "Alarm",
-            body = obj.getString("body") ?: "Your alarm is ringing",
-            stopButton = obj.getString("stopButton"),
-            icon = obj.getString("icon"),
-            iconColor = obj.getString("iconColor")
-        )
-    }
-    
-    private fun alarmSettingsToJson(alarm: AlarmSettings): JSONObject {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        
-        return JSONObject().apply {
-            put("id", alarm.id)
-            put("dateTime", dateFormat.format(alarm.dateTime))
-            put("assetAudioPath", alarm.assetAudioPath)
-            put("loopAudio", alarm.loopAudio)
-            put("vibrate", alarm.vibrate)
-            put("warningNotificationOnKill", alarm.warningNotificationOnKill)
-            put("androidFullScreenIntent", alarm.androidFullScreenIntent)
-            put("allowAlarmOverlap", alarm.allowAlarmOverlap)
-            put("androidStopAlarmOnTermination", alarm.androidStopAlarmOnTermination)
-            alarm.payload?.let { put("payload", it) }
-            
-            // Add volume settings
-            put("volumeSettings", JSONObject().apply {
-                alarm.volumeSettings.volume?.let { put("volume", it) }
-                alarm.volumeSettings.fadeDuration?.let { put("fadeDuration", it) }
-                put("volumeEnforced", alarm.volumeSettings.volumeEnforced)
-                put("fadeSteps", JSONArray().apply {
-                    alarm.volumeSettings.fadeSteps.forEach { step ->
-                        put(JSONObject().apply {
-                            put("time", step.time)
-                            put("volume", step.volume)
-                        })
-                    }
-                })
-            })
-            
-            // Add notification settings
-            put("notificationSettings", JSONObject().apply {
-                put("title", alarm.notificationSettings.title)
-                put("body", alarm.notificationSettings.body)
-                alarm.notificationSettings.stopButton?.let { put("stopButton", it) }
-                alarm.notificationSettings.icon?.let { put("icon", it) }
-                alarm.notificationSettings.iconColor?.let { put("iconColor", it) }
-            })
+
+    private fun turnOnWarningNotificationOnKill() {
+        if (NotificationOnKillService.isRunning) {
+            Logger.debug(TAG, "Warning notification is already turned on.")
+            return
         }
+
+        val serviceIntent = Intent(context, NotificationOnKillService::class.java)
+        serviceIntent.putExtra("title", notificationOnKillTitle)
+        serviceIntent.putExtra("body", notificationOnKillBody)
+
+        context.startService(serviceIntent)
+        Logger.debug(TAG, "Warning notification turned on.")
     }
-    
-    private fun createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Alarm Notifications"
-            val descriptionText = "Notifications for alarm alerts"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-                setShowBadge(true)
-                enableLights(true)
-                enableVibration(true)
-            }
-            
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
+
+    private fun turnOffWarningNotificationOnKill() {
+        if (!NotificationOnKillService.isRunning) {
+            Logger.debug(TAG, "Warning notification is already turned off.")
+            return
         }
+
+        val serviceIntent = Intent(context, NotificationOnKillService::class.java)
+        context.stopService(serviceIntent)
+        Logger.debug(TAG, "Warning notification turned off.")
     }
-    
-    // Method to be called from AlarmReceiver when alarm triggers
-    fun onAlarmRing(alarmId: Int) {
+
+    // Public methods for service callbacks
+    fun notifyAlarmRang(alarmId: Int) {
         val data = JSObject()
         data.put("alarmId", alarmId)
         notifyListeners("alarmRang", data)
     }
-    
-    // Method to be called when alarm stops
-    fun onAlarmStop(alarmId: Int) {
+
+    fun notifyAlarmStopped(alarmId: Int) {
         val data = JSObject()
         data.put("alarmId", alarmId)
         notifyListeners("alarmStopped", data)
     }
+
+    // Helper methods
+    private fun resolveCall(@NonNull call: PluginCall) {
+        call.resolve()
+    }
+
+    private fun rejectCall(@NonNull call: PluginCall, @NonNull message: String) {
+        Logger.error(message)
+        call.reject(message)
+    }
+
+    private fun rejectCall(@NonNull call: PluginCall, @NonNull exception: Exception) {
+        val message = exception.message ?: ERROR_UNKNOWN_ERROR
+        Logger.error(TAG, message, exception)
+        call.reject(message)
+    }
+
+    // Extension function to convert JSObject to JsonObject
+    private fun JSObject.toJsonObject(): JsonObject {
+        val jsonString = this.toString()
+        return Json.parseToJsonElement(jsonString).jsonObject
+    }
 }
-
-// Data classes
-data class AlarmSettings(
-    val id: Int,
-    val dateTime: Date,
-    val assetAudioPath: String,
-    val volumeSettings: VolumeSettings,
-    val notificationSettings: NotificationSettings,
-    val loopAudio: Boolean = true,
-    val vibrate: Boolean = true,
-    val warningNotificationOnKill: Boolean = true,
-    val androidFullScreenIntent: Boolean = true,
-    val allowAlarmOverlap: Boolean = false,
-    val androidStopAlarmOnTermination: Boolean = true,
-    val payload: String? = null
-)
-
-data class VolumeSettings(
-    val volume: Float? = null,
-    val fadeDuration: Int? = null,
-    val fadeSteps: List<VolumeFadeStep> = emptyList(),
-    val volumeEnforced: Boolean = false
-)
-
-data class VolumeFadeStep(
-    val time: Int,
-    val volume: Float
-)
-
-data class NotificationSettings(
-    val title: String,
-    val body: String,
-    val stopButton: String? = null,
-    val icon: String? = null,
-    val iconColor: String? = null
-)

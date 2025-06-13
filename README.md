@@ -13,14 +13,12 @@ npx cap sync
 
 <docgen-index>
 
-* [`init()`](#init)
 * [`setAlarm(...)`](#setalarm)
 * [`stopAlarm(...)`](#stopalarm)
 * [`stopAll()`](#stopall)
 * [`isRinging(...)`](#isringing)
 * [`getAlarms()`](#getalarms)
 * [`setWarningNotificationOnKill(...)`](#setwarningnotificationonkill)
-* [`checkAlarm()`](#checkalarm)
 * [`addListener('alarmRang', ...)`](#addlisteneralarmrang-)
 * [`addListener('alarmStopped', ...)`](#addlisteneralarmstopped-)
 * [`removeAllListeners()`](#removealllisteners)
@@ -30,19 +28,6 @@ npx cap sync
 
 <docgen-api>
 <!--Update the source file JSDoc comments and rerun docgen to update the docs below-->
-
-### init()
-
-```typescript
-init() => any
-```
-
-Initialize the alarm plugin
-
-**Returns:** <code>any</code>
-
---------------------
-
 
 ### setAlarm(...)
 
@@ -132,19 +117,6 @@ Set warning notification when app is killed
 | Param         | Type                                          |
 | ------------- | --------------------------------------------- |
 | **`options`** | <code>{ title: string; body: string; }</code> |
-
-**Returns:** <code>any</code>
-
---------------------
-
-
-### checkAlarm()
-
-```typescript
-checkAlarm() => any
-```
-
-Check and reschedule alarms after app restart
 
 **Returns:** <code>any</code>
 

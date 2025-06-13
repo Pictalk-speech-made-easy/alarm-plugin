@@ -1,10 +1,5 @@
 export interface AlarmPlugin {
   /**
-   * Initialize the alarm plugin
-   */
-  init(): Promise<void>;
-
-  /**
    * Set an alarm with the specified settings
    */
   setAlarm(options: { alarmSettings: AlarmSettings }): Promise<void>;
@@ -33,11 +28,6 @@ export interface AlarmPlugin {
    * Set warning notification when app is killed
    */
   setWarningNotificationOnKill(options: { title: string; body: string }): Promise<void>;
-
-  /**
-   * Check and reschedule alarms after app restart
-   */
-  checkAlarm(): Promise<void>;
 
   /**
    * Add listener for alarm ring events
