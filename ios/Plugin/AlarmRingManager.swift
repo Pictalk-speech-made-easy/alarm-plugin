@@ -149,49 +149,41 @@ class AlarmRingManager: NSObject {
     }
 
     private func loadAudioPlayer(assetAudioPath: String) -> AVAudioPlayer? {
-        let audioURL: URL
+        let filename: String
         
-        // In Capacitor, audio files are stored in App/public/sounds
-        // We need to look for them in the main bundle's www/sounds directory
         if assetAudioPath.hasPrefix("public/sounds/") {
-            // Remove "public/sounds/" prefix since www folder contains the public content
-            let filename = String(assetAudioPath.dropFirst(14))
-            guard let audioPath = Bundle.main.path(forResource: "www/sounds/\(filename)", ofType: nil) else {
-                CAPLog.print("[AlarmPlugin] Audio file not found in www/sounds folder: \(assetAudioPath)")
-                return nil
-            }
-            audioURL = URL(fileURLWithPath: audioPath)
+            filename = assetAudioPath
         } else if assetAudioPath.hasPrefix("sounds/") {
-            // Handle direct sounds/ prefix
-            let filename = String(assetAudioPath.dropFirst(7))
-            guard let audioPath = Bundle.main.path(forResource: "www/sounds/\(filename)", ofType: nil) else {
-                CAPLog.print("[AlarmPlugin] Audio file not found in www/sounds folder: \(assetAudioPath)")
-                return nil
-            }
-            audioURL = URL(fileURLWithPath: audioPath)
+            filename = "public/\(assetAudioPath)"
         } else {
-            // Try direct path in www/sounds folder
-            if let audioPath = Bundle.main.path(forResource: "www/sounds/\(assetAudioPath)", ofType: nil) {
-                audioURL = URL(fileURLWithPath: audioPath)
-            } else {
-                // Fallback: try in documents directory for user-uploaded files
-                guard let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                    CAPLog.print("[AlarmPlugin] Document directory not found.")
-                    return nil
-                }
-                audioURL = documentsDirectory.appendingPathComponent(assetAudioPath)
-                
-                // Check if file exists in documents
-                if !FileManager.default.fileExists(atPath: audioURL.path) {
-                    CAPLog.print("[AlarmPlugin] Audio file not found: \(assetAudioPath)")
-                    return nil
-                }
+            filename = "public/sounds/\(assetAudioPath)"
+        }
+        
+        CAPLog.print("[AlarmPlugin] Looking for audio file at: \(filename)")
+        
+        if let audioPath = Bundle.main.path(forResource: filename, ofType: nil) {
+            CAPLog.print("[AlarmPlugin] Found audio file at: \(audioPath)")
+            return createAudioPlayer(from: URL(fileURLWithPath: audioPath), originalPath: assetAudioPath)
+        }
+        
+        let filenameWithoutExt = (filename as NSString).deletingPathExtension
+        let fileExtension = (filename as NSString).pathExtension
+        
+        if !fileExtension.isEmpty {
+            if let audioPath = Bundle.main.path(forResource: filenameWithoutExt, ofType: fileExtension) {
+                CAPLog.print("[AlarmPlugin] Found audio file with separated extension at: \(audioPath)")
+                return createAudioPlayer(from: URL(fileURLWithPath: audioPath), originalPath: assetAudioPath)
             }
         }
+        
+        CAPLog.print("[AlarmPlugin] Audio file not found: \(assetAudioPath)")
+        return nil
+    }
 
+    private func createAudioPlayer(from audioURL: URL, originalPath: String) -> AVAudioPlayer? {
         do {
             let audioPlayer = try AVAudioPlayer(contentsOf: audioURL)
-            CAPLog.print("[AlarmPlugin] Audio player loaded from: \(assetAudioPath)")
+            CAPLog.print("[AlarmPlugin] Audio player loaded from: \(originalPath) -> \(audioURL.path)")
             return audioPlayer
         } catch {
             CAPLog.print("[AlarmPlugin] Error loading audio player: \(error.localizedDescription)")
