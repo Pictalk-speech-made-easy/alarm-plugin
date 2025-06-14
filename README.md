@@ -1,6 +1,6 @@
 # alarm
 
-This plugins allow Capacitor to manage alarms
+This plugins allow Capacitor to manage alarms. Heavily (almost entirely) inspired by the [Alarm](https://github.com/gdelataillade/alarm) Flutter plugin.
 
 ## Install
 
