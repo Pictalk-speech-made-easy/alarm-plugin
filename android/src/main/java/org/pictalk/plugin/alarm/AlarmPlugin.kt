@@ -1,13 +1,19 @@
 package org.pictalk.plugin.alarm
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Logger
@@ -33,7 +39,6 @@ class AlarmPlugin : Plugin() {
         const val ERROR_INVALID_ALARM_SETTINGS = "Invalid alarm settings provided."
         const val ERROR_ALARM_NOT_FOUND = "Alarm not found."
 
-        @Nullable
         var instance: AlarmPlugin? = null
     }
 
@@ -42,12 +47,39 @@ class AlarmPlugin : Plugin() {
     private var notificationOnKillBody: String =
         "You killed the app. Please reopen so your alarms can be rescheduled."
 
-    @Nullable
     private var implementation: AlarmStorage? = null
 
     override fun load() {
         implementation = AlarmStorage(context)
         instance = this
+    }
+
+    @PluginMethod
+    override fun checkPermissions(call: PluginCall) {
+        val notificationState = getNotificationPermissionState()
+
+        val result = JSObject()
+        result.put("notifications", notificationState)
+        call.resolve(result)
+    }
+
+    @PluginMethod
+    override fun requestPermissions(call: PluginCall) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ requires explicit notification permission
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                // Permission already granted
+                checkPermissions(call)
+            } else {
+                // Save the call to resolve it later in the permission callback
+                bridge.saveCall(call)
+                requestPermissionForAlias("notifications", call, "checkPermissionsResult")
+            }
+        } else {
+            // For Android 12 and below, notifications are enabled by default
+            // but we still need to check if notifications are disabled in system settings
+            checkPermissions(call)
+        }
     }
 
     @PluginMethod
@@ -308,24 +340,57 @@ class AlarmPlugin : Plugin() {
     }
 
     // Helper methods
-    private fun resolveCall(@NonNull call: PluginCall) {
+    private fun resolveCall(call: PluginCall) {
         call.resolve()
     }
 
-    private fun rejectCall(@NonNull call: PluginCall, @NonNull message: String) {
+    private fun rejectCall(call: PluginCall, message: String) {
         Logger.error(message)
         call.reject(message)
     }
 
-    private fun rejectCall(@NonNull call: PluginCall, @NonNull exception: Exception) {
+    private fun rejectCall(call: PluginCall, exception: Exception) {
         val message = exception.message ?: ERROR_UNKNOWN_ERROR
         Logger.error(TAG, message, exception)
         call.reject(message)
     }
 
-    // Extension function to convert JSObject to JsonObject
     private fun JSObject.toJsonObject(): JsonObject {
         val jsonString = this.toString()
         return Json.parseToJsonElement(jsonString).jsonObject
     }
+
+    private fun getNotificationPermissionState(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13+ - check POST_NOTIFICATIONS permission
+            when (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)) {
+                PackageManager.PERMISSION_GRANTED -> {
+                    // Also check if notifications are enabled in system settings
+                    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                        "granted"
+                    } else {
+                        "denied"
+                    }
+                }
+                PackageManager.PERMISSION_DENIED -> {
+                    // Check if we should show rationale
+                    val activity = this.activity
+                    if (activity != null && activity.shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                        "prompt-with-rationale"
+                    } else {
+                        "prompt"
+                    }
+                }
+                else -> "prompt"
+            }
+        } else {
+            // Android 12 and below - check system notification settings
+            if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
+                "granted"
+            } else {
+                "denied"
+            }
+        }
+    }
+
 }

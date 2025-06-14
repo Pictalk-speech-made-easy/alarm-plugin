@@ -1,13 +1,18 @@
 import { WebPlugin } from '@capacitor/core';
-import type { AlarmPlugin, AlarmSettings, PluginListenerHandle } from './definitions';
+import type { AlarmPlugin, AlarmSettings, PluginListenerHandle, PermissionStatus } from './definitions';
 
 export class AlarmWeb extends WebPlugin implements AlarmPlugin {
-  async init(): Promise<void> {
+  async setAlarm(options: { alarmSettings: AlarmSettings }): Promise<void> {
+    console.log('setAlarm', options);
     throw this.unimplemented('Not implemented on web.');
   }
 
-  async setAlarm(options: { alarmSettings: AlarmSettings }): Promise<void> {
-    console.log('setAlarm', options);
+  async checkPermissions(): Promise<PermissionStatus> {
+    console.log('checkPermissions');
+    throw this.unimplemented('Not implemented on web.');
+  }
+  async requestPermissions(): Promise<PermissionStatus> {
+    console.log('requestPermissions');
     throw this.unimplemented('Not implemented on web.');
   }
 

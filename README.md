@@ -19,10 +19,13 @@ npx cap sync
 * [`isRinging(...)`](#isringing)
 * [`getAlarms()`](#getalarms)
 * [`setWarningNotificationOnKill(...)`](#setwarningnotificationonkill)
+* [`checkPermissions()`](#checkpermissions)
+* [`requestPermissions()`](#requestpermissions)
 * [`addListener('alarmRang', ...)`](#addlisteneralarmrang-)
 * [`addListener('alarmStopped', ...)`](#addlisteneralarmstopped-)
 * [`removeAllListeners()`](#removealllisteners)
 * [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 
 </docgen-index>
 
@@ -117,6 +120,32 @@ Set warning notification when app is killed
 | Param         | Type                                          |
 | ------------- | --------------------------------------------- |
 | **`options`** | <code>{ title: string; body: string; }</code> |
+
+**Returns:** <code>any</code>
+
+--------------------
+
+
+### checkPermissions()
+
+```typescript
+checkPermissions() => any
+```
+
+Check current permission status
+
+**Returns:** <code>any</code>
+
+--------------------
+
+
+### requestPermissions()
+
+```typescript
+requestPermissions() => any
+```
+
+Request permissions for notifications
 
 **Returns:** <code>any</code>
 
@@ -223,10 +252,25 @@ Remove all listeners for this plugin
 | **`iconColor`**  | <code>string</code> | Color of the notification icon as hex string (Android only) |
 
 
+#### PermissionStatus
+
+| Prop                | Type                                                        | Description                        |
+| ------------------- | ----------------------------------------------------------- | ---------------------------------- |
+| **`notifications`** | <code><a href="#permissionstate">PermissionState</a></code> | Permission state for notifications |
+
+
 #### PluginListenerHandle
 
 | Prop         | Type                      |
 | ------------ | ------------------------- |
 | **`remove`** | <code>() =&gt; any</code> |
+
+
+### Type Aliases
+
+
+#### PermissionState
+
+<code>'prompt' | 'prompt-with-rationale' | 'granted' | 'denied'</code>
 
 </docgen-api>

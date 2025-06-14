@@ -1,58 +1,71 @@
-import ObjectiveC
-import Foundation
-import Capacitor
 import BackgroundTasks
+import Capacitor
 
 class BackgroundTaskManager: NSObject {
-    private static let backgroundTaskIdentifier = "com.alarm.fetch"
-    private static var enabled = false
-    
+    // Use a Capacitor-specific identifier for background tasks
+    private static let backgroundTaskIdentifier: String = "com.capacitor.alarm.refresh"
+
+    private static var enabled: Bool = false
+    private static var plugin: AlarmPlugin?
+
+    static func setPlugin(_ plugin: AlarmPlugin) {
+        self.plugin = plugin
+    }
+
     static func setup() {
         BGTaskScheduler.shared.register(forTaskWithIdentifier: backgroundTaskIdentifier, using: nil) { task in
-            // Schedule next task
-            enable()
-            
-            // Run the task
+            // Schedule the next task:
+            self.enable()
+
+            // Run the task:
             Task {
-                CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task executing")
-                
-                // Add your background refresh logic here
-                // For example, you might want to check if alarms are still valid
-                
+                await self.appRefresh()
                 task.setTaskCompleted(success: true)
-                CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task completed")
+                CAPLog.print("[AlarmPlugin] App refresh task executed.")
             }
         }
-        CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task listener registered")
+        CAPLog.print("[AlarmPlugin] App refresh task listener registered.")
     }
-    
+
     static func enable() {
         if enabled {
-            CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task already active")
+            CAPLog.print("[AlarmPlugin] App refresh task already active.")
             return
         }
-        
+
         let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
-        request.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
-        
+        // 15 minutes
+        request.earliestBeginDate = Date(timeIntervalSinceNow: TimeInterval(15 * 60))
+
         do {
             try BGTaskScheduler.shared.submit(request)
-            CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task submitted")
+            CAPLog.print("[AlarmPlugin] App refresh task submitted.")
         } catch {
-            CAPLog.print("[", AlarmPlugin.tag, "] ", "Could not schedule background task: %@", error.localizedDescription)
+            CAPLog.print("[AlarmPlugin] Could not schedule app refresh task: \(error.localizedDescription)")
         }
-        
+
         enabled = true
     }
-    
+
     static func disable() {
         if !enabled {
-            CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task already inactive")
+            CAPLog.print("[AlarmPlugin] App refresh task already inactive.")
             return
         }
-        
+
         BGTaskScheduler.shared.cancel(taskRequestWithIdentifier: backgroundTaskIdentifier)
         enabled = false
-        CAPLog.print("[", AlarmPlugin.tag, "] ", "Background task cancelled")
+        CAPLog.print("[AlarmPlugin] App refresh task cancelled.")
+    }
+
+    private static func appRefresh() async {
+        guard let plugin = self.plugin else {
+            CAPLog.print("[AlarmPlugin] Plugin not available for app refresh.")
+            return
+        }
+
+        // Check and reschedule alarms when app refreshes in background
+        await plugin.checkAlarms()
+        CAPLog.print("[AlarmPlugin] App refresh completed - alarms checked.")
     }
 }

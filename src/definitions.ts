@@ -28,6 +28,15 @@ export interface AlarmPlugin {
    * Set warning notification when app is killed
    */
   setWarningNotificationOnKill(options: { title: string; body: string }): Promise<void>;
+  /**
+   * Check current permission status
+   */
+  checkPermissions(): Promise<PermissionStatus>;
+
+  /**
+   * Request permissions for notifications
+   */
+  requestPermissions(): Promise<PermissionStatus>;
 
   /**
    * Add listener for alarm ring events
@@ -49,6 +58,13 @@ export interface AlarmPlugin {
    * Remove all listeners for this plugin
    */
   removeAllListeners(): Promise<void>;
+}
+
+export interface PermissionStatus {
+  /**
+   * Permission state for notifications
+   */
+  notifications: PermissionState;
 }
 
 export interface AlarmSettings {

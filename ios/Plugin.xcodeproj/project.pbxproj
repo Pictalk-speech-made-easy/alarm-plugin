@@ -9,18 +9,17 @@
 /* Begin PBXBuildFile section */
 		03FC29A292ACC40490383A1F /* Pods_Plugin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3B2A61DA5A1F2DD4F959604D /* Pods_Plugin.framework */; };
 		20C0B05DCFC8E3958A738AF2 /* Pods_PluginTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F6753A823D3815DB436415E3 /* Pods_PluginTests.framework */; };
-		2F98D68224C9AAE500613A4C /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F98D68124C9AAE500613A4C /* AlarmManager.swift */; };
 		50ADFF92201F53D600D50D53 /* Plugin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50ADFF88201F53D600D50D53 /* Plugin.framework */; };
 		50ADFF97201F53D600D50D53 /* AlarmTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50ADFF96201F53D600D50D53 /* AlarmTests.swift */; };
 		50ADFFA42020D75100D50D53 /* Capacitor.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 50ADFFA52020D75100D50D53 /* Capacitor.framework */; };
 		50E1A94820377CB70090CE1A /* AlarmPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50E1A94720377CB70090CE1A /* AlarmPlugin.swift */; };
-		7C80E29B2CEBD87B008BDF17 /* AlarmModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C80E29A2CEBD87B008BDF17 /* AlarmModels.swift */; };
-		FA4C29F52DFC1BD500C2E125 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29F42DFC1BCF00C2E125 /* NotificationManager.swift */; };
 		FA4C29F72DFC1D8E00C2E125 /* AlarmRingManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29F62DFC1D8A00C2E125 /* AlarmRingManager.swift */; };
-		FA4C29F92DFC1E1500C2E125 /* BackgroundAudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29F82DFC1E1000C2E125 /* BackgroundAudioManager.swift */; };
-		FA4C29FB2DFC1E6100C2E125 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29FA2DFC1E5F00C2E125 /* BackgroundTaskManager.swift */; };
-		FA4C29FD2DFC1EE500C2E125 /* AppTerminateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29FC2DFC1EE400C2E125 /* AppTerminateManager.swift */; };
-		FA4C29FF2DFC1F2600C2E125 /* VibrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C29FE2DFC1F2200C2E125 /* VibrationManager.swift */; };
+		FA4C2A122DFDB51B00C2E125 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A112DFDB51700C2E125 /* NotificationManager.swift */; };
+		FA4C2A142DFDB52F00C2E125 /* VibrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A132DFDB52900C2E125 /* VibrationManager.swift */; };
+		FA4C2A192DFDB64B00C2E125 /* AlarmManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A182DFDB64200C2E125 /* AlarmManager.swift */; };
+		FA4C2A1D2DFDB76600C2E125 /* BackgroundTaskManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A1C2DFDB76100C2E125 /* BackgroundTaskManager.swift */; };
+		FA4C2A1F2DFDB77F00C2E125 /* AppTerminateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A1E2DFDB77900C2E125 /* AppTerminateManager.swift */; };
+		FA4C2A212DFDB7CA00C2E125 /* BackgroundAudioManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA4C2A202DFDB7C600C2E125 /* BackgroundAudioManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,7 +33,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2F98D68124C9AAE500613A4C /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
 		3B2A61DA5A1F2DD4F959604D /* Pods_Plugin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Plugin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50ADFF88201F53D600D50D53 /* Plugin.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Plugin.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50ADFF8C201F53D600D50D53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -44,18 +42,22 @@
 		50ADFFA52020D75100D50D53 /* Capacitor.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = Capacitor.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		50E1A94720377CB70090CE1A /* AlarmPlugin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AlarmPlugin.swift; sourceTree = "<group>"; };
 		5E23F77F099397094342571A /* Pods-Plugin.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plugin.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Plugin/Pods-Plugin.debug.xcconfig"; sourceTree = "<group>"; };
-		7C80E29A2CEBD87B008BDF17 /* AlarmModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmModels.swift; sourceTree = "<group>"; };
 		91781294A431A2A7CC6EB714 /* Pods-Plugin.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Plugin.release.xcconfig"; path = "Pods/Target Support Files/Pods-Plugin/Pods-Plugin.release.xcconfig"; sourceTree = "<group>"; };
 		96ED1B6440D6672E406C8D19 /* Pods-PluginTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PluginTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-PluginTests/Pods-PluginTests.debug.xcconfig"; sourceTree = "<group>"; };
 		F65BB2953ECE002E1EF3E424 /* Pods-PluginTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PluginTests.release.xcconfig"; path = "Pods/Target Support Files/Pods-PluginTests/Pods-PluginTests.release.xcconfig"; sourceTree = "<group>"; };
 		F6753A823D3815DB436415E3 /* Pods_PluginTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PluginTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		FA4C29F42DFC1BCF00C2E125 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		FA4C29F62DFC1D8A00C2E125 /* AlarmRingManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmRingManager.swift; sourceTree = "<group>"; };
-		FA4C29F82DFC1E1000C2E125 /* BackgroundAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundAudioManager.swift; sourceTree = "<group>"; };
-		FA4C29FA2DFC1E5F00C2E125 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
-		FA4C29FC2DFC1EE400C2E125 /* AppTerminateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTerminateManager.swift; sourceTree = "<group>"; };
-		FA4C29FE2DFC1F2200C2E125 /* VibrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibrationManager.swift; sourceTree = "<group>"; };
+		FA4C2A112DFDB51700C2E125 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		FA4C2A132DFDB52900C2E125 /* VibrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VibrationManager.swift; sourceTree = "<group>"; };
+		FA4C2A182DFDB64200C2E125 /* AlarmManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmManager.swift; sourceTree = "<group>"; };
+		FA4C2A1C2DFDB76100C2E125 /* BackgroundTaskManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundTaskManager.swift; sourceTree = "<group>"; };
+		FA4C2A1E2DFDB77900C2E125 /* AppTerminateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTerminateManager.swift; sourceTree = "<group>"; };
+		FA4C2A202DFDB7C600C2E125 /* BackgroundAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundAudioManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		FA4C2A002DFDB41B00C2E125 /* models */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = models; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		50ADFF84201F53D600D50D53 /* Frameworks */ = {
@@ -102,15 +104,15 @@
 		50ADFF8A201F53D600D50D53 /* Plugin */ = {
 			isa = PBXGroup;
 			children = (
-				FA4C29FE2DFC1F2200C2E125 /* VibrationManager.swift */,
-				FA4C29FC2DFC1EE400C2E125 /* AppTerminateManager.swift */,
-				FA4C29FA2DFC1E5F00C2E125 /* BackgroundTaskManager.swift */,
-				FA4C29F82DFC1E1000C2E125 /* BackgroundAudioManager.swift */,
+				FA4C2A202DFDB7C600C2E125 /* BackgroundAudioManager.swift */,
+				FA4C2A1E2DFDB77900C2E125 /* AppTerminateManager.swift */,
+				FA4C2A1C2DFDB76100C2E125 /* BackgroundTaskManager.swift */,
+				FA4C2A182DFDB64200C2E125 /* AlarmManager.swift */,
 				FA4C29F62DFC1D8A00C2E125 /* AlarmRingManager.swift */,
-				FA4C29F42DFC1BCF00C2E125 /* NotificationManager.swift */,
+				FA4C2A132DFDB52900C2E125 /* VibrationManager.swift */,
+				FA4C2A112DFDB51700C2E125 /* NotificationManager.swift */,
+				FA4C2A002DFDB41B00C2E125 /* models */,
 				50E1A94720377CB70090CE1A /* AlarmPlugin.swift */,
-				2F98D68124C9AAE500613A4C /* AlarmManager.swift */,
-				7C80E29A2CEBD87B008BDF17 /* AlarmModels.swift */,
 				50ADFF8C201F53D600D50D53 /* Info.plist */,
 			);
 			path = Plugin;
@@ -172,6 +174,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				FA4C2A002DFDB41B00C2E125 /* models */,
 			);
 			name = Plugin;
 			productName = Plugin;
@@ -321,14 +326,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				FA4C29F72DFC1D8E00C2E125 /* AlarmRingManager.swift in Sources */,
-				FA4C29FD2DFC1EE500C2E125 /* AppTerminateManager.swift in Sources */,
 				50E1A94820377CB70090CE1A /* AlarmPlugin.swift in Sources */,
-				FA4C29FF2DFC1F2600C2E125 /* VibrationManager.swift in Sources */,
-				FA4C29F92DFC1E1500C2E125 /* BackgroundAudioManager.swift in Sources */,
-				7C80E29B2CEBD87B008BDF17 /* AlarmModels.swift in Sources */,
-				FA4C29FB2DFC1E6100C2E125 /* BackgroundTaskManager.swift in Sources */,
-				FA4C29F52DFC1BD500C2E125 /* NotificationManager.swift in Sources */,
-				2F98D68224C9AAE500613A4C /* AlarmManager.swift in Sources */,
+				FA4C2A122DFDB51B00C2E125 /* NotificationManager.swift in Sources */,
+				FA4C2A192DFDB64B00C2E125 /* AlarmManager.swift in Sources */,
+				FA4C2A212DFDB7CA00C2E125 /* BackgroundAudioManager.swift in Sources */,
+				FA4C2A1F2DFDB77F00C2E125 /* AppTerminateManager.swift in Sources */,
+				FA4C2A1D2DFDB76600C2E125 /* BackgroundTaskManager.swift in Sources */,
+				FA4C2A142DFDB52F00C2E125 /* VibrationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -459,7 +463,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -485,7 +490,11 @@
 				INFOPLIST_FILE = Plugin/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.pictalk.plugin.alarm;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -514,7 +523,11 @@
 				INFOPLIST_FILE = Plugin/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = org.pictalk.plugin.alarm;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -530,7 +543,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = PluginTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.capacitor.alarm.plugintests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -545,7 +562,11 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = PluginTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.capacitor.alarm.plugintests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
