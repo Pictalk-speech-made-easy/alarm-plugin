@@ -201,6 +201,11 @@ export interface NotificationSettings {
    * Color of the notification icon as hex string (Android only)
    */
   iconColor?: string;
+
+  /**
+   * Image to show in the notification
+   */
+  image?: string;
 }
 
 export interface PluginListenerHandle {

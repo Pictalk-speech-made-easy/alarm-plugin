@@ -6,9 +6,10 @@ struct NotificationSettings: Codable {
     var stopButton: String?
     var icon: String? // Ignored on iOS but kept for compatibility
     var iconColor: String? // Ignored on iOS but kept for compatibility
+    var image: String?
 
     enum CodingKeys: String, CodingKey {
-        case title, body, stopButton, icon, iconColor
+        case title, body, stopButton, icon, iconColor, image
     }
 
     /// Custom initializer
@@ -17,13 +18,15 @@ struct NotificationSettings: Codable {
         body: String,
         stopButton: String? = nil,
         icon: String? = nil,
-        iconColor: String? = nil
+        iconColor: String? = nil,
+        image: String? = nil
     ) {
         self.title = title
         self.body = body
         self.stopButton = stopButton
         self.icon = icon
         self.iconColor = iconColor
+        self.image = image
     }
 
     /// Custom decoder for backward compatibility
@@ -35,6 +38,7 @@ struct NotificationSettings: Codable {
         stopButton = try container.decodeIfPresent(String.self, forKey: .stopButton)
         icon = try container.decodeIfPresent(String.self, forKey: .icon)
         iconColor = try container.decodeIfPresent(String.self, forKey: .iconColor)
+        image = try container.decodeIfPresent(String.self, forKey: .image)
     }
 
     /// Converts from Capacitor data dictionary to NotificationSettings
@@ -52,7 +56,8 @@ struct NotificationSettings: Codable {
             body: body,
             stopButton: data["stopButton"] as? String,
             icon: data["icon"] as? String,
-            iconColor: data["iconColor"] as? String
+            iconColor: data["iconColor"] as? String,
+            image: data["image"] as? String
         )
     }
     
@@ -73,6 +78,10 @@ struct NotificationSettings: Codable {
         
         if let iconColor = iconColor {
             result["iconColor"] = iconColor
+        }
+        
+        if let image = image {
+                    result["image"] = image
         }
         
         return result

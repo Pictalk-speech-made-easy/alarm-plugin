@@ -9,7 +9,9 @@ data class NotificationSettings(
     val body: String,
     val stopButton: String? = null,
     val icon: String? = null,
-    val iconColor: Int? = null
+    val iconColor: Int? = null,
+    val image: String? = null
+
 ) {
     companion object {
         /**
@@ -20,7 +22,8 @@ data class NotificationSettings(
             body: String,
             stopButton: String? = null,
             icon: String? = null,
-            iconColorHex: String? = null
+            iconColorHex: String? = null,
+            image: String? = null
         ): NotificationSettings {
             val iconColor = iconColorHex?.let { hex ->
                 try {
@@ -35,7 +38,8 @@ data class NotificationSettings(
                 body = body,
                 stopButton = stopButton,
                 icon = icon,
-                iconColor = iconColor
+                iconColor = iconColor,
+                image = image
             )
         }
     }

@@ -56,6 +56,30 @@ class NotificationManager: NSObject {
         let categoryIdentifiers = categories.map { $0.identifier }.joined(separator: ", ")
         CAPLog.print("[AlarmPlugin] Added new category \(categoryIdentifier). Notification categories are now: \(categoryIdentifiers)")
     }
+    
+    private func makeImageAttachment(from imagePath: String, withId attachmentId: String = "image") -> UNNotificationAttachment? {
+            guard let webURL = URL(string: imagePath),
+                  let bridge = plugin?.bridge,
+                  let localURL = bridge.localURL(fromWebURL: webURL) else {
+                CAPLog.print("[AlarmPlugin] Failed to create URL from image path: \(imagePath)")
+                return nil
+            }
+            
+            do {
+                let attachment = try UNNotificationAttachment(
+                    identifier: attachmentId,
+                    url: localURL,
+                    options: [
+                        UNNotificationAttachmentOptionsThumbnailHiddenKey: false
+                    ]
+                )
+                CAPLog.print("[AlarmPlugin] Created notification attachment successfully for: \(imagePath)")
+                return attachment
+            } catch {
+                CAPLog.print("[AlarmPlugin] Error creating notification attachment: \(error.localizedDescription)")
+                return nil
+            }
+        }
 
     func showNotification(id: Int, notificationSettings: NotificationSettings) async {
         let notifSettings = await UNUserNotificationCenter.current().notificationSettings()
@@ -72,7 +96,16 @@ class NotificationManager: NSObject {
             content.interruptionLevel = .timeSensitive
         }
         content.userInfo = [NotificationManager.userInfoAlarmIdKey: id]
-
+        
+        if let imagePath = notificationSettings.image {
+            if let attachment = makeImageAttachment(from: imagePath, withId: "alarm_image_\(id)") {
+                content.attachments = [attachment]
+                CAPLog.print("[AlarmPlugin] Added image attachment to notification for alarm ID=\(id)")
+            } else {
+                CAPLog.print("[AlarmPlugin] Failed to create image attachment for alarm ID=\(id)")
+            }
+        }
+        
         if let stopButtonTitle = notificationSettings.stopButton {
             let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(stopButtonTitle)"
             await registerCategoryIfNeeded(forActionTitle: stopButtonTitle)

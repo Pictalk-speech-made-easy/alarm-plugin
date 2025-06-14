@@ -57,8 +57,21 @@ data class AlarmSettings(
             }
 
             val assetAudioPath = json.primitiveString("assetAudioPath") ?: throw SerializationException("Missing 'assetAudioPath'")
-            val notificationSettings = json["notificationSettings"]?.let {
-                Json.decodeFromJsonElement<NotificationSettings>(it)
+            val notificationSettings = json["notificationSettings"]?.jsonObject?.let { notifJson ->
+                val title = notifJson.primitiveString("title") ?: throw SerializationException("Missing notification 'title'")
+                val body = notifJson.primitiveString("body") ?: throw SerializationException("Missing notification 'body'")
+                val stopButton = notifJson.primitiveString("stopButton")
+                val icon = notifJson.primitiveString("icon")
+                val iconColorHex = notifJson.primitiveString("iconColor")
+                val image = notifJson.primitiveString("image")
+                NotificationSettings.fromCapacitorData(
+                    title = title,
+                    body = body,
+                    stopButton = stopButton,
+                    icon = icon,
+                    iconColorHex = iconColorHex,
+                    image = image
+                )
             } ?: throw SerializationException("Missing 'notificationSettings'")
             val loopAudio = json.primitiveBoolean("loopAudio") ?: true
             val vibrate = json.primitiveBoolean("vibrate") ?: true

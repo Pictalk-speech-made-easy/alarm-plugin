@@ -250,6 +250,7 @@ Remove all listeners for this plugin
 | **`stopButton`** | <code>string</code> | Text for the stop button (null to hide button)              |
 | **`icon`**       | <code>string</code> | Icon name for the notification (Android only)               |
 | **`iconColor`**  | <code>string</code> | Color of the notification icon as hex string (Android only) |
+| **`image`**      | <code>string</code> | Image to show in the notification                           |
 
 
 #### PermissionStatus

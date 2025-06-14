@@ -8,8 +8,11 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import com.getcapacitor.plugin.util.AssetUtil
 import org.pictalk.plugin.alarm.alarm.AlarmReceiver
 
 class NotificationHandler(private val context: Context) {
@@ -35,6 +38,23 @@ class NotificationHandler(private val context: Context) {
             val notificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun getLargeIcon(imagePath: String): Bitmap? {
+        return try {
+            val assets = AssetUtil.getInstance(context)
+            val uri = assets.parse(imagePath)
+            if (uri != Uri.EMPTY) {
+                val bitmap = assets.getIconFromUri(uri)
+                // Scale for big image (notification expanded view)
+                Bitmap.createScaledBitmap(bitmap, 128, 128, true)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
@@ -95,6 +115,13 @@ class NotificationHandler(private val context: Context) {
 
             if (it.iconColor != null) {
                 notificationBuilder.setColor(it.iconColor)
+            }
+
+            if (it.image != null) {
+                val largeIcon = getLargeIcon(it.image)
+                if (largeIcon != null) {
+                    notificationBuilder.setLargeIcon(largeIcon)
+                }
             }
         }
 
