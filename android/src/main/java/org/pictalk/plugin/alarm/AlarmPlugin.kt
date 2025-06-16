@@ -23,8 +23,20 @@ import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.double
+import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.float
+import kotlinx.serialization.json.floatOrNull
+import kotlinx.serialization.json.int
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.long
+import kotlinx.serialization.json.longOrNull
 import org.pictalk.plugin.alarm.alarm.AlarmReceiver
 import org.pictalk.plugin.alarm.alarm.AlarmService
 import org.pictalk.plugin.alarm.models.AlarmSettings
@@ -151,16 +163,9 @@ class AlarmPlugin : Plugin() {
             implementation?.let { storage ->
                 val savedAlarms = storage.getSavedAlarms()
                 val alarmsArray = JSArray()
-
                 for (alarm in savedAlarms) {
-                    val alarmJson = alarm.toJsonObject()
-                    val alarmJSObject = JSObject()
-                    for ((key, value) in alarmJson) {
-                        alarmJSObject.put(key, value.toString().trim('"'))
-                    }
-                    alarmsArray.put(alarmJSObject)
+                    alarmsArray.put(jsonObjectToJSObject(alarm.toJsonObject()))
                 }
-
                 val result = JSObject()
                 result.put("alarms", alarmsArray)
                 call.resolve(result)
@@ -393,4 +398,58 @@ class AlarmPlugin : Plugin() {
         }
     }
 
+    /**
+     * Convert a kotlinx.serialization JsonObject to a Capacitor JSObject
+     */
+    private fun jsonObjectToJSObject(jsonObject: JsonObject): JSObject {
+        val jsObject = JSObject()
+
+        for ((key, jsonElement) in jsonObject) {
+            when (jsonElement) {
+                is JsonPrimitive -> {
+                    when {
+                        jsonElement.isString -> jsObject.put(key, jsonElement.content)
+                        jsonElement.booleanOrNull != null -> jsObject.put(key, jsonElement.boolean)
+                        jsonElement.intOrNull != null -> jsObject.put(key, jsonElement.int)
+                        jsonElement.longOrNull != null -> jsObject.put(key, jsonElement.long)
+                        jsonElement.doubleOrNull != null -> jsObject.put(key, jsonElement.double)
+                        jsonElement.floatOrNull != null -> jsObject.put(key, jsonElement.float)
+                        else -> jsObject.put(key, jsonElement.content)
+                    }
+                }
+                is JsonObject -> jsObject.put(key, jsonObjectToJSObject(jsonElement)) // Recursive call for nested objects
+                is JsonArray -> jsObject.put(key, jsonArrayToJSArray(jsonElement)) // Handle arrays
+                else -> jsObject.put(key, jsonElement.toString())
+            }
+        }
+
+        return jsObject
+    }
+
+    /**
+     * Convert a kotlinx.serialization JsonArray to a Capacitor JSArray
+     */
+    private fun jsonArrayToJSArray(jsonArray: JsonArray): JSArray {
+        val jsArray = JSArray()
+
+        for (jsonElement in jsonArray) {
+            when (jsonElement) {
+                is JsonPrimitive -> {
+                    when {
+                        jsonElement.isString -> jsArray.put(jsonElement.content)
+                        jsonElement.booleanOrNull != null -> jsArray.put(jsonElement.boolean)
+                        jsonElement.intOrNull != null -> jsArray.put(jsonElement.int)
+                        jsonElement.longOrNull != null -> jsArray.put(jsonElement.long)
+                        jsonElement.doubleOrNull != null -> jsArray.put(jsonElement.double)
+                        jsonElement.floatOrNull != null -> jsArray.put(jsonElement.float)
+                        else -> jsArray.put(jsonElement.content)
+                    }
+                }
+                is JsonObject -> jsArray.put(jsonObjectToJSObject(jsonElement))
+                is JsonArray -> jsArray.put(jsonArrayToJSArray(jsonElement))
+                else -> jsArray.put(jsonElement.toString())
+            }
+        }
+        return jsArray
+    }
 }
