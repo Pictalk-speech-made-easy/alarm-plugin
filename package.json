@@ -1,6 +1,6 @@
 {
   "name": "@pictalk-speech-made-easy/alarm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "This plugins allow Capacitor to manage alarms",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "Alarm.podspec",
+    "PictalkSpeechMadeEasyAlarm.podspec",
     "Package.swift"
   ],
   "author": "",
