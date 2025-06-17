@@ -34,6 +34,11 @@ export class AlarmWeb extends WebPlugin implements AlarmPlugin {
     throw this.unimplemented('Not implemented on web.');
   }
 
+  async getRingingAlarms(): Promise<{ alarms: AlarmSettings[] }> {
+    console.log('getRingingAlarms');
+    throw this.unimplemented('Not implemented on web.');
+  }
+
   async setWarningNotificationOnKill(options: { title: string; body: string }): Promise<void> {
     console.log('setWarningNotificationOnKill', options);
     throw this.unimplemented('Not implemented on web.');

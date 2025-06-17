@@ -98,6 +98,10 @@ class AlarmManager: NSObject {
         return Array(self.alarms.values.map { $0.settings })
     }
 
+    func getRingingAlarms() -> [AlarmSettings] {
+        return self.alarms.values.filter { $0.state == .ringing }.map { $0.settings }
+    }
+
     /// Ensures all alarm timers are valid and reschedules them if not.
     func checkAlarms() async {
         var rescheduled = 0

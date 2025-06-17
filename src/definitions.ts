@@ -24,6 +24,13 @@ export interface AlarmPlugin {
    */
   getAlarms(): Promise<{ alarms: AlarmSettings[] }>;
 
+
+  /**
+   * Get all currently ringing alarms with their full settings
+   * @returns Promise with array of ringing alarms and count
+   */
+  getRingingAlarms(): Promise<{ alarms: AlarmSettings[] }>;
+
   /**
    * Set warning notification when app is killed
    */

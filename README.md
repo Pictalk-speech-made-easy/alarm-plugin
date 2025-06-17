@@ -18,6 +18,7 @@ npx cap sync
 * [`stopAll()`](#stopall)
 * [`isRinging(...)`](#isringing)
 * [`getAlarms()`](#getalarms)
+* [`getRingingAlarms()`](#getringingalarms)
 * [`setWarningNotificationOnKill(...)`](#setwarningnotificationonkill)
 * [`checkPermissions()`](#checkpermissions)
 * [`requestPermissions()`](#requestpermissions)
@@ -103,6 +104,19 @@ getAlarms() => any
 ```
 
 Get all scheduled alarms
+
+**Returns:** <code>any</code>
+
+--------------------
+
+
+### getRingingAlarms()
+
+```typescript
+getRingingAlarms() => any
+```
+
+Get all currently ringing alarms with their full settings
 
 **Returns:** <code>any</code>
 

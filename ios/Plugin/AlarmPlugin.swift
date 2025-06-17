@@ -16,6 +16,7 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "stopAll", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "isRinging", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getAlarms", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getRingingAlarms", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setWarningNotificationOnKill", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkPermissions", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise)
@@ -144,6 +145,17 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
         }
 
         let alarms = manager.getAlarms()
+        let alarmsData = alarms.map { $0.toDictionary() }
+        call.resolve(["alarms": alarmsData])
+    }
+
+    @objc func getRingingAlarms(_ call: CAPPluginCall) {
+        guard let manager = self.manager else {
+            self.rejectCall(call, AlarmError.unknownError)
+            return
+        }
+
+        let alarms = manager.getRingingAlarms()
         let alarmsData = alarms.map { $0.toDictionary() }
         call.resolve(["alarms": alarmsData])
     }

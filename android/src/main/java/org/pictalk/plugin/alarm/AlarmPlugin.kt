@@ -180,6 +180,36 @@ class AlarmPlugin : Plugin() {
     }
 
     @PluginMethod
+    fun getRingingAlarms(call: PluginCall) {
+        try {
+            implementation?.let { storage ->
+                val ringingAlarmIds = AlarmService.ringingAlarmIds
+                val savedAlarms = storage.getSavedAlarms()
+                
+                val ringingAlarms = savedAlarms.filter { alarm -> 
+                    ringingAlarmIds.contains(alarm.id) 
+                }
+                
+                val alarmsArray = JSArray()
+                for (alarm in ringingAlarms) {
+                    val alarmJSObject = jsonObjectToJSObject(alarm.toJsonObject())
+                    alarmsArray.put(alarmJSObject)
+                }
+                
+                val result = JSObject()
+                result.put("alarms", alarmsArray)
+                call.resolve(result)
+            } ?: run {
+                val result = JSObject()
+                result.put("alarms", JSArray())
+                call.resolve(result)
+            }
+        } catch (e: Exception) {
+            rejectCall(call, e)
+        }
+    }
+
+    @PluginMethod
     fun setWarningNotificationOnKill(call: PluginCall) {
         try {
             val title = call.getString("title") ?: notificationOnKillTitle
