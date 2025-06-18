@@ -79,6 +79,8 @@ class VolumeService(context: Context) {
     fun requestAudioFocus() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val audioAttributes = AudioAttributes.Builder()
+                .setLegacyStreamType(AudioManager.STREAM_ALARM)
+                .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
