@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.getcapacitor.plugin.util.AssetUtil
+import org.pictalk.plugin.alarm.AlarmActivity
 import org.pictalk.plugin.alarm.R
 import org.pictalk.plugin.alarm.alarm.AlarmReceiver
 
@@ -35,6 +36,7 @@ class NotificationHandler(private val context: Context) {
             ).apply {
                 setSound(null, null)
                 enableLights(true)
+                setBypassDnd(true)
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
@@ -94,6 +96,20 @@ class NotificationHandler(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        val alarmActivityIntent = Intent(context, AlarmActivity::class.java).apply {
+            putExtra("alarmId", alarmId)
+            putExtra("title", notificationSettings.title)
+            putExtra("body", notificationSettings.body)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            context,
+            alarmId,
+            alarmActivityIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(iconResId)
             .setContentTitle(notificationSettings.title)
@@ -109,7 +125,7 @@ class NotificationHandler(private val context: Context) {
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
         if (fullScreen) {
-            notificationBuilder.setFullScreenIntent(pendingIntent, true)
+            notificationBuilder.setFullScreenIntent(fullScreenPendingIntent, true)
         }
 
         notificationSettings.let {
