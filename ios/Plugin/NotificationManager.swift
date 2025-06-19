@@ -94,6 +94,7 @@ class NotificationManager: NSObject {
         content.sound = nil
         if #available(iOS 15.0, *) {
             content.interruptionLevel = .timeSensitive
+            content.relevanceScore = 1.0
         }
         content.userInfo = [NotificationManager.userInfoAlarmIdKey: id]
         

@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.getcapacitor.plugin.util.AssetUtil
+import org.pictalk.plugin.alarm.R
 import org.pictalk.plugin.alarm.alarm.AlarmReceiver
 
 class NotificationHandler(private val context: Context) {
@@ -33,6 +34,8 @@ class NotificationHandler(private val context: Context) {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 setSound(null, null)
+                enableLights(true)
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
 
             val notificationManager =
@@ -97,7 +100,8 @@ class NotificationHandler(private val context: Context) {
             .setContentText(notificationSettings.body)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setAutoCancel(true)
+            .setAutoCancel(false)
+            .setWhen(0)
             .setOngoing(true)
             .setContentIntent(pendingIntent)
             .setDeleteIntent(stopPendingIntent)
@@ -110,7 +114,7 @@ class NotificationHandler(private val context: Context) {
 
         notificationSettings.let {
             if (it.stopButton != null) {
-                notificationBuilder.addAction(0, it.stopButton, stopPendingIntent)
+                notificationBuilder.addAction(R.drawable.ic_action_dismiss, it.stopButton, stopPendingIntent)
             }
 
             if (it.iconColor != null) {
