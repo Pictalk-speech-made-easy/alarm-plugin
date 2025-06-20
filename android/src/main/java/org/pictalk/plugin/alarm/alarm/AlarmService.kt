@@ -16,7 +16,9 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.Build
 import com.getcapacitor.Logger
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.pictalk.plugin.alarm.AlarmAlertFullScreen
 import org.pictalk.plugin.alarm.models.AlarmSettings
 import org.pictalk.plugin.alarm.services.AlarmRingingLiveData
 import org.pictalk.plugin.alarm.services.NotificationHandler
@@ -92,11 +94,13 @@ class AlarmService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        val fullScreenIntent = createFullScreenIntent(alarmSettings)
 
         val notification = notificationHandler.buildNotification(
             alarmSettings.notificationSettings,
             alarmSettings.androidFullScreenIntent,
             pendingIntent,
+            fullScreenIntent,
             id
         )
 
@@ -125,7 +129,7 @@ class AlarmService : Service() {
         }
 
         if (alarmSettings.androidFullScreenIntent) {
-            AlarmRingingLiveData.instance.update(true)
+            launchFullScreenActivity(alarmSettings)
         }
 
         // Notify the plugin about the alarm ringing
@@ -193,6 +197,37 @@ class AlarmService : Service() {
 
         return START_STICKY
     }
+
+    private fun createFullScreenIntent(alarmSettings: AlarmSettings): PendingIntent {
+        val fullScreenIntent = Intent(this, AlarmAlertFullScreen::class.java).apply {
+            putExtra(AlarmAlertFullScreen.EXTRA_ALARM_ID, alarmSettings.id)
+            putExtra(AlarmAlertFullScreen.EXTRA_ALARM_SETTINGS, Json.encodeToString(alarmSettings))
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
+        return PendingIntent.getActivity(
+            this,
+            alarmSettings.id,
+            fullScreenIntent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+    }
+
+    private fun launchFullScreenActivity(alarmSettings: AlarmSettings) {
+        val fullScreenIntent = Intent(this, AlarmAlertFullScreen::class.java).apply {
+            putExtra(AlarmAlertFullScreen.EXTRA_ALARM_ID, alarmSettings.id)
+            putExtra(AlarmAlertFullScreen.EXTRA_ALARM_SETTINGS, Json.encodeToString(alarmSettings))
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+
+        try {
+            startActivity(fullScreenIntent)
+            Logger.debug(TAG, "Full screen activity launched for alarm ${alarmSettings.id}")
+        } catch (e: Exception) {
+            Logger.error(TAG, "Failed to launch full screen activity", e)
+        }
+    }
+
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         Logger.debug(TAG, "App closed, checking if alarm should be stopped.")

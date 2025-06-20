@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Alarm Alert Colors -->
+    <color name="alarm_background">#1a1a1a</color>
+    <color name="alarm_text_primary">#ffffff</color>
+    <color name="alarm_text_secondary">#cccccc</color>
+    <color name="alarm_text_hint">#888888</color>
+    <color name="alarm_button_text">#ffffff</color>
+
+    <!-- Button Colors -->
+    <color name="alarm_button_snooze">#4CAF50</color>
+    <color name="alarm_button_snooze_pressed">#45a049</color>
+    <color name="alarm_button_dismiss">#f44336</color>
+    <color name="alarm_button_dismiss_pressed">#d32f2f</color>
+
+    <!-- Accent Colors -->
+    <color name="alarm_accent">#2196F3</color>
+    <color name="alarm_accent_dark">#1976D2</color>
+</resources>
