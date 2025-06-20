@@ -161,11 +161,19 @@ class NotificationManager: NSObject {
                 CAPLog.print("[AlarmPlugin] Alarm plugin not available.")
                 return
             }
-            
-            // Stop the alarm directly through internal method
             Task {
                 await plugin.stopAlarmInternal(alarmId: id)
             }
+        case UNNotificationDefaultActionIdentifier:
+                // Handle notification tap (when user taps the notification itself)
+                CAPLog.print("[AlarmPlugin] Default action (notification tap) triggered for notification: \(notification.request.identifier)")
+                guard let plugin = self.plugin else {
+                    CAPLog.print("[AlarmPlugin] Alarm plugin not available.")
+                    return
+                }
+                Task {
+                    await plugin.stopAlarmInternal(alarmId: id)
+                }
         default:
             break
         }
