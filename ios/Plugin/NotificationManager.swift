@@ -220,10 +220,6 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        if !isAlarmNotification(notification) {
-            completionHandler([])
-            return
-        }
         completionHandler([.badge, .sound, .alert])
     }
 }
