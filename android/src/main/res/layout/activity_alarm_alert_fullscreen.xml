@@ -8,37 +8,38 @@
     android:padding="24dp">
 
     <!-- Clock Display -->
+
+    <!-- Alarm Label -->
     <TextView
         android:id="@+id/alarm_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="07:30"
-        android:textSize="72sp"
-        android:textColor="@color/alarm_text_primary"
+        android:layout_marginBottom="16dp"
         android:fontFamily="sans-serif-light"
-        android:layout_marginBottom="16dp" />
+        android:text="07:30"
+        android:textColor="@color/alarm_text_primary"
+        android:textSize="72sp" />
 
-    <!-- Alarm Label -->
     <TextView
         android:id="@+id/alarm_label"
-        android:layout_width="wrap_content"
+        android:layout_width="253dp"
         android:layout_height="wrap_content"
-        android:text="Alarm"
-        android:textSize="24sp"
-        android:textColor="@color/alarm_text_secondary"
         android:layout_marginBottom="48dp"
-        android:gravity="center" />
+        android:gravity="center"
+        android:text="Alarm"
+        android:textColor="@color/alarm_text_secondary"
+        android:textSize="24sp" />
 
     <!-- Alarm Icon or Animation -->
     <ImageView
         android:id="@+id/alarm_icon"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
-        android:src="@drawable/ic_alarm_on"
+        android:layout_width="206dp"
+        android:layout_height="199dp"
         android:layout_marginBottom="48dp"
+        android:adjustViewBounds="true"
         android:alpha="0.8"
         android:scaleType="centerCrop"
-        android:adjustViewBounds="true" />
+        android:src="@drawable/ic_alarm_on" />
 
     <!-- Button Container -->
     <LinearLayout
@@ -51,7 +52,7 @@
         <!-- Dismiss Button -->
         <Button
             android:id="@+id/dismiss_button"
-            android:layout_width="373dp"
+            android:layout_width="342dp"
             android:layout_height="60dp"
             android:layout_marginStart="0dp"
             android:background="@drawable/alarm_button_background_dismiss"

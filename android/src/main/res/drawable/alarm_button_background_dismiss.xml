@@ -3,13 +3,13 @@
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
             <solid android:color="@color/alarm_button_dismiss_pressed" />
-            <corners android:radius="8dp" />
+            <corners android:radius="50dp" />
         </shape>
     </item>
     <item>
         <shape android:shape="rectangle">
             <solid android:color="@color/alarm_button_dismiss" />
-            <corners android:radius="8dp" />
+            <corners android:radius="50dp" />
         </shape>
     </item>
 </selector>
