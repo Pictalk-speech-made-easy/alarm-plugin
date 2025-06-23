@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Alarm Alert Colors -->
-    <color name="alarm_background">ffffff</color>
+    <color name="alarm_background">#ffffff</color>
     <color name="alarm_text_primary">#1a1a1a</color>
     <color name="alarm_text_secondary">#000000</color>
     <color name="alarm_text_hint">#000000</color>
