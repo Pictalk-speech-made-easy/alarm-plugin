@@ -9,18 +9,17 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import androidx.annotation.NonNull
-import androidx.annotation.Nullable
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Logger
+import com.getcapacitor.PermissionState
 import com.getcapacitor.Plugin
 import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
+import com.getcapacitor.annotation.PermissionCallback
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -41,7 +40,9 @@ import org.pictalk.plugin.alarm.alarm.AlarmReceiver
 import org.pictalk.plugin.alarm.alarm.AlarmService
 import org.pictalk.plugin.alarm.models.AlarmSettings
 import org.pictalk.plugin.alarm.services.AlarmStorage
+import org.pictalk.plugin.alarm.services.FullScreenIntentPermissionHelper
 import org.pictalk.plugin.alarm.services.NotificationOnKillService
+
 
 @CapacitorPlugin(name = "Alarm")
 class AlarmPlugin : Plugin() {
@@ -69,9 +70,10 @@ class AlarmPlugin : Plugin() {
     @PluginMethod
     override fun checkPermissions(call: PluginCall) {
         val notificationState = getNotificationPermissionState()
-
+        val fullScreenIntentState = FullScreenIntentPermissionHelper.getPermissionStatus(context)
         val result = JSObject()
         result.put("notifications", notificationState)
+        result.put("fullScreen", fullScreenIntentState)
         call.resolve(result)
     }
 
@@ -91,6 +93,17 @@ class AlarmPlugin : Plugin() {
             // For Android 12 and below, notifications are enabled by default
             // but we still need to check if notifications are disabled in system settings
             checkPermissions(call)
+        }
+    }
+
+    @PluginMethod
+    fun requestFullScreenIntentPermission(call: PluginCall) {
+        // Should only be rejected if the permission has been denied by the user
+        val activity = this.activity
+        if (activity != null && FullScreenIntentPermissionHelper.checkAndRequestPermission(activity)) {
+            call.resolve()
+        } else {
+            call.reject("Full screen intent permission is not available, is denied or has not been requested.")
         }
     }
 

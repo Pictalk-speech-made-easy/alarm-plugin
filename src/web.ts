@@ -16,6 +16,11 @@ export class AlarmWeb extends WebPlugin implements AlarmPlugin {
     throw this.unimplemented('Not implemented on web.');
   }
 
+  async requestFullScreenIntentPermission(): Promise<void> {
+    console.log('requestFullScreenIntentPermission');
+    throw this.unimplemented('Not implemented on web.');
+  }
+
   async stopAlarm(options: { alarmId: number }): Promise<void> {
     console.log('stopAlarm', options);
     throw this.unimplemented('Not implemented on web.');

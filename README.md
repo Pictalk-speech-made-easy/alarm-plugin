@@ -22,6 +22,7 @@ npx cap sync
 * [`setWarningNotificationOnKill(...)`](#setwarningnotificationonkill)
 * [`checkPermissions()`](#checkpermissions)
 * [`requestPermissions()`](#requestpermissions)
+* [`requestFullScreenIntentPermission()`](#requestfullscreenintentpermission)
 * [`addListener('alarmRang', ...)`](#addlisteneralarmrang-)
 * [`addListener('alarmStopped', ...)`](#addlisteneralarmstopped-)
 * [`removeAllListeners()`](#removealllisteners)
@@ -166,6 +167,21 @@ Request permissions for notifications
 --------------------
 
 
+### requestFullScreenIntentPermission()
+
+```typescript
+requestFullScreenIntentPermission() => any
+```
+
+Request full screen intent permission on Android
+This is required for alarms to show properly on Android 14+
+If the permission is denied, we have to ask the request
+
+**Returns:** <code>any</code>
+
+--------------------
+
+
 ### addListener('alarmRang', ...)
 
 ```typescript
@@ -269,9 +285,10 @@ Remove all listeners for this plugin
 
 #### PermissionStatus
 
-| Prop                | Type                                                        | Description                        |
-| ------------------- | ----------------------------------------------------------- | ---------------------------------- |
-| **`notifications`** | <code><a href="#permissionstate">PermissionState</a></code> | Permission state for notifications |
+| Prop                | Type                                                        | Description                                                                                          |
+| ------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| **`notifications`** | <code><a href="#permissionstate">PermissionState</a></code> | Permission state for notifications                                                                   |
+| **`fullScreen`**    | <code><a href="#permissionstate">PermissionState</a></code> | Permission state fullScreenIntent on Android If the permission is denied, we have to ask the request |
 
 
 #### PluginListenerHandle

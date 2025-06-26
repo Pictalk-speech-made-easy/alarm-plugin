@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -174,7 +175,7 @@ class AlarmAlertFullScreen : FragmentActivity() {
             inputStream.close()
 
             if (bitmap != null) {
-                imageView?.setImageBitmap(bitmap)
+                imageView?.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 512, 512, true))
                 true
             } else {
                 false
@@ -194,7 +195,7 @@ class AlarmAlertFullScreen : FragmentActivity() {
             inputStream?.close()
 
             if (bitmap != null) {
-                imageView?.setImageBitmap(bitmap)
+                imageView?.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 512, 512, true))
             } else {
                 imageView?.setImageResource(R.drawable.ic_alarm_on)
             }
@@ -209,7 +210,7 @@ class AlarmAlertFullScreen : FragmentActivity() {
         try {
             val bitmap = BitmapFactory.decodeFile(filePath)
             if (bitmap != null) {
-                imageView?.setImageBitmap(bitmap)
+                imageView?.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 512, 512, true))
             } else {
                 imageView?.setImageResource(R.drawable.ic_alarm_on)
             }

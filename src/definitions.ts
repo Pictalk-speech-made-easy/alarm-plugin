@@ -46,6 +46,13 @@ export interface AlarmPlugin {
   requestPermissions(): Promise<PermissionStatus>;
 
   /**
+   * Request full screen intent permission on Android
+   * This is required for alarms to show properly on Android 14+
+   * If the permission is denied, we have to ask the request
+   */
+  requestFullScreenIntentPermission(): Promise<void>;
+
+  /**
    * Add listener for alarm ring events
    */
   addListener(
@@ -72,6 +79,13 @@ export interface PermissionStatus {
    * Permission state for notifications
    */
   notifications: PermissionState;
+
+  /**
+   * Permission state fullScreenIntent on Android
+   * If the permission is denied, we have to ask the request
+   */
+  fullScreen: PermissionState;
+
 }
 
 export interface AlarmSettings {

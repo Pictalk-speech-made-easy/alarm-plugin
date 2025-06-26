@@ -19,7 +19,8 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getRingingAlarms", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setWarningNotificationOnKill", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkPermissions", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "requestPermissions", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestFullScreenIntentPermission", returnType: CAPPluginReturnPromise)
     ]
     public static let tag = "AlarmPlugin"
 
@@ -56,7 +57,8 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
             }
             
             call.resolve([
-                "notifications": notificationState
+                "notifications": notificationState,
+                "fullScreen": "granted"
             ])
         }
     }
@@ -73,6 +75,10 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
                 self?.checkPermissions(call)
             }
         }
+    }
+    
+    @objc func requestFullScreenIntentPermission(_ call: CAPPluginCall) {
+        call.reject("Not used in iOS")
     }
 
     @objc func setAlarm(_ call: CAPPluginCall) {

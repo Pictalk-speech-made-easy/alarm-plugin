@@ -52,7 +52,7 @@ class NotificationHandler(private val context: Context) {
             if (uri != Uri.EMPTY) {
                 val bitmap = assets.getIconFromUri(uri)
                 // Scale for big image (notification expanded view)
-                Bitmap.createScaledBitmap(bitmap, 128, 128, true)
+                return Bitmap.createScaledBitmap(bitmap, 128, 128, true)
             } else {
                 null
             }
