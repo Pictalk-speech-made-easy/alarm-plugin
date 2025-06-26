@@ -5,6 +5,7 @@ This plugins allow Capacitor to manage alarms. Heavily (almost entirely) inspire
 ## Install
 
 ```bash
+export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
 npm install alarm
 npx cap sync
 ```
