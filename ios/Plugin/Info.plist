@@ -7,6 +7,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.alarm.fetch</string>
+		<string>com.capacitor.alarm.refresh</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>

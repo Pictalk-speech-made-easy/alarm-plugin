@@ -218,25 +218,25 @@ class AlarmManager: NSObject {
     }
 
     private func updateState() {
-        if self.alarms.contains(where: { $1.state == .scheduled && $1.settings.warningNotificationOnKill }) {
+        if self.alarms.contains(where: { $0.value.state == .scheduled && $0.value.settings.warningNotificationOnKill }) {
             AppTerminateManager.shared.startMonitoring()
         } else {
             AppTerminateManager.shared.stopMonitoring()
         }
 
-        if !self.alarms.contains(where: { $1.state == .ringing }) && self.alarms.contains(where: { $1.state == .scheduled && $1.settings.iOSBackgroundAudio }) {
+        if !self.alarms.contains(where: { $0.value.state == .ringing }) && self.alarms.contains(where: { $0.value.state == .scheduled && $0.value.settings.iOSBackgroundAudio }) {
             BackgroundAudioManager.shared.start()
         } else {
             BackgroundAudioManager.shared.stop()
         }
 
-        if self.alarms.contains(where: { $1.state == .scheduled }) {
+        if self.alarms.contains(where: { $0.value.state == .scheduled }) {
             BackgroundTaskManager.enable()
         } else {
             BackgroundTaskManager.disable()
         }
 
-        if self.alarms.contains(where: { $1.state == .ringing && $1.settings.vibrate }) {
+        if self.alarms.contains(where: { $0.value.state == .ringing && $0.value.settings.vibrate }) {
             VibrationManager.shared.start()
         } else {
             VibrationManager.shared.stop()
