@@ -1,6 +1,6 @@
 {
   "name": "@pictalk-speech-made-easy/alarm",
-  "version": "8.3.1",
+  "version": "8.3.2",
   "description": "This plugins allow Capacitor to manage alarms",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
