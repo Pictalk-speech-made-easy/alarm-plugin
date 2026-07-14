@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -113,6 +114,21 @@ class AlarmAlertFullScreen : FragmentActivity() {
                 text = settings.notificationSettings.stopButton
             }
         }
+
+        // Set up snooze button
+        findViewById<Button>(R.id.snooze_button)?.apply {
+            alarmSettings?.let { settings ->
+                val snoozeLabel = settings.notificationSettings.snoozeButton
+                if (snoozeLabel != null) {
+                    text = snoozeLabel
+                    visibility = View.VISIBLE
+                    setOnClickListener {
+                        snoozeAlarm()
+                    }
+                }
+            }
+        }
+
         // Update alarm information
         updateAlarmInfo()
     }
@@ -236,6 +252,14 @@ class AlarmAlertFullScreen : FragmentActivity() {
 
         // Notify the plugin
         AlarmPlugin.instance?.notifyAlarmStopped(alarmId)
+
+        finish()
+    }
+
+    private fun snoozeAlarm() {
+        Logger.debug(TAG, "Snoozing alarm $alarmId")
+
+        AlarmPlugin.instance?.snoozeAlarm(alarmId)
 
         finish()
     }

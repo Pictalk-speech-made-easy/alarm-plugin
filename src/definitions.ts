@@ -157,6 +157,12 @@ export interface AlarmSettings {
   androidStopAlarmOnTermination?: boolean;
 
   /**
+   * Duration in minutes for the snooze interval
+   * @default 5
+   */
+  snoozeDurationMinutes?: number;
+
+  /**
    * Optional payload data
    */
   payload?: string;
@@ -212,6 +218,11 @@ export interface NotificationSettings {
    * Text for the stop button (null to hide button)
    */
   stopButton?: string;
+
+  /**
+   * Text for the snooze button (null to hide button)
+   */
+  snoozeButton?: string;
 
   /**
    * Icon name for the notification (Android only)

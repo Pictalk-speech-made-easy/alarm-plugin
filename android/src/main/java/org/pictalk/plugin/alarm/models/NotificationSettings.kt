@@ -8,6 +8,7 @@ data class NotificationSettings(
     val title: String,
     val body: String,
     val stopButton: String? = null,
+    val snoozeButton: String? = null,
     val icon: String? = null,
     val iconColor: Int? = null,
     val image: String? = null
@@ -21,6 +22,7 @@ data class NotificationSettings(
             title: String,
             body: String,
             stopButton: String? = null,
+            snoozeButton: String? = null,
             icon: String? = null,
             iconColorHex: String? = null,
             image: String? = null
@@ -37,6 +39,7 @@ data class NotificationSettings(
                 title = title,
                 body = body,
                 stopButton = stopButton,
+                snoozeButton = snoozeButton,
                 icon = icon,
                 iconColor = iconColor,
                 image = image

@@ -115,6 +115,20 @@ class NotificationHandler(private val context: Context) {
         }
 
         notificationSettings.let {
+            if (it.snoozeButton != null) {
+                val snoozeIntent = Intent(context, AlarmReceiver::class.java).apply {
+                    action = AlarmReceiver.ACTION_ALARM_SNOOZE
+                    putExtra("id", alarmId)
+                }
+                val snoozePendingIntent = PendingIntent.getBroadcast(
+                    context,
+                    alarmId,
+                    snoozeIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                notificationBuilder.addAction(0, it.snoozeButton, snoozePendingIntent)
+            }
+
             if (it.stopButton != null) {
                 notificationBuilder.addAction(R.drawable.ic_action_dismiss, it.stopButton, stopPendingIntent)
             }

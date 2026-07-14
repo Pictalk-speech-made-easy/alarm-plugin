@@ -14,12 +14,14 @@ struct AlarmSettings: Codable {
     let allowAlarmOverlap: Bool
     let iOSBackgroundAudio: Bool
     let androidStopAlarmOnTermination: Bool
+    let snoozeDurationMinutes: Int
     let payload: String?
 
     enum CodingKeys: String, CodingKey {
         case id, dateTime, assetAudioPath, volumeSettings, notificationSettings,
              loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent,
-             allowAlarmOverlap, iOSBackgroundAudio, androidStopAlarmOnTermination, payload
+             allowAlarmOverlap, iOSBackgroundAudio, androidStopAlarmOnTermination,
+             snoozeDurationMinutes, payload
     }
 
     /// Custom initializer to handle backward compatibility for older models
@@ -40,6 +42,7 @@ struct AlarmSettings: Codable {
         allowAlarmOverlap = try container.decodeIfPresent(Bool.self, forKey: .allowAlarmOverlap) ?? false
         iOSBackgroundAudio = try container.decodeIfPresent(Bool.self, forKey: .iOSBackgroundAudio) ?? true
         androidStopAlarmOnTermination = try container.decodeIfPresent(Bool.self, forKey: .androidStopAlarmOnTermination) ?? true
+        snoozeDurationMinutes = try container.decodeIfPresent(Int.self, forKey: .snoozeDurationMinutes) ?? 5
         payload = try container.decodeIfPresent(String.self, forKey: .payload)
 
         // Decode volume settings (with backward compatibility)
@@ -62,6 +65,7 @@ struct AlarmSettings: Codable {
         try container.encode(allowAlarmOverlap, forKey: .allowAlarmOverlap)
         try container.encode(iOSBackgroundAudio, forKey: .iOSBackgroundAudio)
         try container.encode(androidStopAlarmOnTermination, forKey: .androidStopAlarmOnTermination)
+        try container.encode(snoozeDurationMinutes, forKey: .snoozeDurationMinutes)
         try container.encodeIfPresent(payload, forKey: .payload)
     }
 
@@ -79,6 +83,7 @@ struct AlarmSettings: Codable {
         allowAlarmOverlap: Bool = false,
         iOSBackgroundAudio: Bool = true,
         androidStopAlarmOnTermination: Bool = true,
+        snoozeDurationMinutes: Int = 5,
         payload: String? = nil
     ) {
         self.id = id
@@ -93,6 +98,7 @@ struct AlarmSettings: Codable {
         self.allowAlarmOverlap = allowAlarmOverlap
         self.iOSBackgroundAudio = iOSBackgroundAudio
         self.androidStopAlarmOnTermination = androidStopAlarmOnTermination
+        self.snoozeDurationMinutes = snoozeDurationMinutes
         self.payload = payload
     }
 
@@ -161,6 +167,7 @@ struct AlarmSettings: Codable {
             allowAlarmOverlap: alarmSettingsData["allowAlarmOverlap"] as? Bool ?? false,
             iOSBackgroundAudio: alarmSettingsData["iOSBackgroundAudio"] as? Bool ?? true,
             androidStopAlarmOnTermination: alarmSettingsData["androidStopAlarmOnTermination"] as? Bool ?? true,
+            snoozeDurationMinutes: alarmSettingsData["snoozeDurationMinutes"] as? Int ?? 5,
             payload: alarmSettingsData["payload"] as? String
         )
     }
@@ -185,6 +192,7 @@ struct AlarmSettings: Codable {
             "allowAlarmOverlap": allowAlarmOverlap,
             "iOSBackgroundAudio": iOSBackgroundAudio,
             "androidStopAlarmOnTermination": androidStopAlarmOnTermination,
+            "snoozeDurationMinutes": snoozeDurationMinutes,
             "payload": payload as Any
         ]
     }

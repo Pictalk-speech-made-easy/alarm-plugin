@@ -28,6 +28,7 @@ data class AlarmSettings(
     val androidFullScreenIntent: Boolean,
     val allowAlarmOverlap: Boolean = false, // Defaults to false for backward compatibility
     val androidStopAlarmOnTermination: Boolean = true, // Defaults to true for backward compatibility
+    val snoozeDurationMinutes: Int = 5,
     val payload: String? = null // Optional payload data
 ) {
     companion object {
@@ -61,6 +62,7 @@ data class AlarmSettings(
                 val title = notifJson.primitiveString("title") ?: throw SerializationException("Missing notification 'title'")
                 val body = notifJson.primitiveString("body") ?: throw SerializationException("Missing notification 'body'")
                 val stopButton = notifJson.primitiveString("stopButton")
+                val snoozeButton = notifJson.primitiveString("snoozeButton")
                 val icon = notifJson.primitiveString("icon")
                 val iconColorHex = notifJson.primitiveString("iconColor")
                 val image = notifJson.primitiveString("image")
@@ -68,6 +70,7 @@ data class AlarmSettings(
                     title = title,
                     body = body,
                     stopButton = stopButton,
+                    snoozeButton = snoozeButton,
                     icon = icon,
                     iconColorHex = iconColorHex,
                     image = image
@@ -79,6 +82,7 @@ data class AlarmSettings(
             val androidFullScreenIntent = json.primitiveBoolean("androidFullScreenIntent") ?: true
             val allowAlarmOverlap = json.primitiveBoolean("allowAlarmOverlap") ?: false
             val androidStopAlarmOnTermination = json.primitiveBoolean("androidStopAlarmOnTermination") ?: true
+            val snoozeDurationMinutes = json.primitiveInt("snoozeDurationMinutes") ?: 5
             val payload = json.primitiveString("payload")
 
             // Handle volumeSettings with defaults
@@ -103,6 +107,7 @@ data class AlarmSettings(
                 androidFullScreenIntent = androidFullScreenIntent,
                 allowAlarmOverlap = allowAlarmOverlap,
                 androidStopAlarmOnTermination = androidStopAlarmOnTermination,
+                snoozeDurationMinutes = snoozeDurationMinutes,
                 payload = payload
             )
         }
@@ -136,6 +141,7 @@ data class AlarmSettings(
             put("androidFullScreenIntent", androidFullScreenIntent)
             put("allowAlarmOverlap", allowAlarmOverlap)
             put("androidStopAlarmOnTermination", androidStopAlarmOnTermination)
+            put("snoozeDurationMinutes", snoozeDurationMinutes)
             payload?.let { put("payload", it) }
         }
     }

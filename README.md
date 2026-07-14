@@ -251,6 +251,7 @@ Remove all listeners for this plugin
 | **`allowAlarmOverlap`**             | <code>boolean</code>                                                  | Whether to allow alarm overlap                            | <code>false</code> |
 | **`iOSBackgroundAudio`**            | <code>boolean</code>                                                  | Whether to enable background audio on iOS                 | <code>true</code>  |
 | **`androidStopAlarmOnTermination`** | <code>boolean</code>                                                  | Whether to stop alarm when Android task is terminated     | <code>true</code>  |
+| **`snoozeDurationMinutes`**         | <code>number</code>                                                   | Duration in minutes for the snooze interval               | <code>5</code>     |
 | **`payload`**                       | <code>string</code>                                                   | Optional payload data                                     |                    |
 
 
@@ -274,14 +275,15 @@ Remove all listeners for this plugin
 
 #### NotificationSettings
 
-| Prop             | Type                | Description                                                 |
-| ---------------- | ------------------- | ----------------------------------------------------------- |
-| **`title`**      | <code>string</code> | Title of the alarm notification                             |
-| **`body`**       | <code>string</code> | Body of the alarm notification                              |
-| **`stopButton`** | <code>string</code> | Text for the stop button (null to hide button)              |
-| **`icon`**       | <code>string</code> | Icon name for the notification (Android only)               |
-| **`iconColor`**  | <code>string</code> | Color of the notification icon as hex string (Android only) |
-| **`image`**      | <code>string</code> | Image to show in the notification                           |
+| Prop               | Type                | Description                                                 |
+| ------------------ | ------------------- | ----------------------------------------------------------- |
+| **`title`**        | <code>string</code> | Title of the alarm notification                             |
+| **`body`**         | <code>string</code> | Body of the alarm notification                              |
+| **`stopButton`**   | <code>string</code> | Text for the stop button (null to hide button)              |
+| **`snoozeButton`** | <code>string</code> | Text for the snooze button (null to hide button)            |
+| **`icon`**         | <code>string</code> | Icon name for the notification (Android only)               |
+| **`iconColor`**    | <code>string</code> | Color of the notification icon as hex string (Android only) |
+| **`image`**        | <code>string</code> | Image to show in the notification                           |
 
 
 #### PermissionStatus

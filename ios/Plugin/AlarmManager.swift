@@ -87,6 +87,39 @@ class AlarmManager: NSObject {
         CAPLog.print("[AlarmPlugin] Stop all complete.")
     }
 
+    func snoozeAlarm(id: Int) async {
+        guard let config = self.alarms[id] else {
+            CAPLog.print("[AlarmPlugin] Cannot snooze alarm \(id): not found.")
+            return
+        }
+
+        let settings = config.settings
+        let snoozeDuration = TimeInterval(settings.snoozeDurationMinutes * 60)
+
+        await self.stopAlarm(id: id, cancelNotif: true)
+
+        let newSettings = AlarmSettings(
+            id: settings.id,
+            dateTime: Date().addingTimeInterval(snoozeDuration),
+            assetAudioPath: settings.assetAudioPath,
+            volumeSettings: settings.volumeSettings,
+            notificationSettings: settings.notificationSettings,
+            loopAudio: settings.loopAudio,
+            vibrate: settings.vibrate,
+            warningNotificationOnKill: settings.warningNotificationOnKill,
+            androidFullScreenIntent: settings.androidFullScreenIntent,
+            allowAlarmOverlap: settings.allowAlarmOverlap,
+            iOSBackgroundAudio: settings.iOSBackgroundAudio,
+            androidStopAlarmOnTermination: settings.androidStopAlarmOnTermination,
+            snoozeDurationMinutes: settings.snoozeDurationMinutes,
+            payload: settings.payload
+        )
+
+        await self.setAlarm(alarmSettings: newSettings)
+
+        CAPLog.print("[AlarmPlugin] Alarm \(id) snoozed for \(settings.snoozeDurationMinutes) minutes.")
+    }
+
     func isRinging(id: Int? = nil) -> Bool {
         guard let alarmId = id else {
             return self.alarms.values.contains(where: { $0.state == .ringing })

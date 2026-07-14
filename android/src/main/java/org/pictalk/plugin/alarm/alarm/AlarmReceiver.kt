@@ -6,10 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import com.getcapacitor.Logger
+import org.pictalk.plugin.alarm.AlarmPlugin
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_ALARM_STOP = "org.pictalk.plugin.alarm.ACTION_STOP"
+        const val ACTION_ALARM_SNOOZE = "org.pictalk.plugin.alarm.ACTION_SNOOZE"
         const val EXTRA_ALARM_ACTION = "EXTRA_ALARM_ACTION"
     }
 
@@ -18,12 +20,20 @@ class AlarmReceiver : BroadcastReceiver() {
 
         /// Stop alarm from notification stop button.
         if (action == ACTION_ALARM_STOP) {
-            val id = intent.getIntExtra("id", 0) 
+            val id = intent.getIntExtra("id", 0)
             Logger.debug("AlarmReceiver", "Received stop alarm command from notification, id: $id")
             AlarmService.instance?.let {
                 it.handleStopAlarmCommand(id)
                 return
             }
+        }
+
+        /// Snooze alarm from notification snooze button.
+        if (action == ACTION_ALARM_SNOOZE) {
+            val id = intent.getIntExtra("id", 0)
+            Logger.debug("AlarmReceiver", "Received snooze alarm command from notification, id: $id")
+            AlarmPlugin.instance?.snoozeAlarm(id)
+            return
         }
 
         // Start Alarm Service

@@ -197,6 +197,11 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPLog.print("[AlarmPlugin] Alarm \(alarmId) stopped internally")
     }
 
+    internal func snoozeAlarmInternal(alarmId: Int) async {
+        await self.manager?.snoozeAlarm(id: alarmId)
+        CAPLog.print("[AlarmPlugin] Alarm \(alarmId) snoozed internally")
+    }
+
     // MARK: - Helper Methods
 
     private func rejectCall(_ call: CAPPluginCall, _ error: Error) {

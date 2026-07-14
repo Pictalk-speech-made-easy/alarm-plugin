@@ -42,6 +42,7 @@ import org.pictalk.plugin.alarm.models.AlarmSettings
 import org.pictalk.plugin.alarm.services.AlarmStorage
 import org.pictalk.plugin.alarm.services.FullScreenIntentPermissionHelper
 import org.pictalk.plugin.alarm.services.NotificationOnKillService
+import java.util.Date
 
 
 @CapacitorPlugin(name = "Alarm")
@@ -372,6 +373,22 @@ class AlarmPlugin : Plugin() {
         val serviceIntent = Intent(context, NotificationOnKillService::class.java)
         context.stopService(serviceIntent)
         Logger.debug(TAG, "Warning notification turned off.")
+    }
+
+    fun snoozeAlarm(alarmId: Int) {
+        val settings = implementation?.getSavedAlarms()?.find { it.id == alarmId }
+        if (settings == null) {
+            Logger.warn(TAG, "Cannot snooze alarm $alarmId: settings not found in storage")
+            return
+        }
+
+        stopAlarmInternal(alarmId)
+
+        val newDateTime = Date(System.currentTimeMillis() + settings.snoozeDurationMinutes * 60 * 1000L)
+        val newSettings = settings.copy(dateTime = newDateTime)
+        setAlarmInternal(newSettings)
+
+        Logger.info(TAG, "Alarm $alarmId snoozed for ${settings.snoozeDurationMinutes} minutes")
     }
 
     // Public methods for service callbacks

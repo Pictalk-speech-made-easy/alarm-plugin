@@ -9,6 +9,7 @@ class NotificationManager: NSObject {
     private static let categoryWithActionIdentifierPrefix = "ALARM_CATEGORY_WITH_ACTION_"
     private static let notificationIdentifierPrefix = "ALARM_NOTIFICATION_"
     private static let stopActionIdentifier = "ALARM_STOP_ACTION"
+    private static let snoozeActionIdentifier = "ALARM_SNOOZE_ACTION"
     private static let userInfoAlarmIdKey = "ALARM_ID"
 
     private var plugin: AlarmPlugin?
@@ -35,16 +36,34 @@ class NotificationManager: NSObject {
         CAPLog.print("[AlarmPlugin] Setup notification categories: \(categoryIdentifiers)")
     }
 
-    private func registerCategoryIfNeeded(forActionTitle actionTitle: String) async {
-        let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(actionTitle)"
+    private func registerCategoryIfNeeded(stopTitle: String?, snoozeTitle: String?) async -> String {
+        var actions: [UNNotificationAction] = []
+        var suffix = ""
+
+        if let snoozeTitle = snoozeTitle {
+            let snoozeAction = UNNotificationAction(identifier: NotificationManager.snoozeActionIdentifier, title: snoozeTitle, options: [.foreground])
+            actions.append(snoozeAction)
+            suffix += "_snooze_\(snoozeTitle)"
+        }
+
+        if let stopTitle = stopTitle {
+            let stopAction = UNNotificationAction(identifier: NotificationManager.stopActionIdentifier, title: stopTitle, options: [.foreground, .destructive])
+            actions.append(stopAction)
+            suffix += "_stop_\(stopTitle)"
+        }
+
+        if actions.isEmpty {
+            return NotificationManager.categoryWithoutActionIdentifier
+        }
+
+        let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(suffix)"
 
         let existingCategories = await UNUserNotificationCenter.current().notificationCategories()
         if existingCategories.contains(where: { $0.identifier == categoryIdentifier }) {
-            return
+            return categoryIdentifier
         }
 
-        let action = UNNotificationAction(identifier: NotificationManager.stopActionIdentifier, title: actionTitle, options: [.foreground, .destructive])
-        let category = UNNotificationCategory(identifier: categoryIdentifier, actions: [action], intentIdentifiers: [], options: [.hiddenPreviewsShowTitle, .hiddenPreviewsShowSubtitle])
+        let category = UNNotificationCategory(identifier: categoryIdentifier, actions: actions, intentIdentifiers: [], options: [.hiddenPreviewsShowTitle, .hiddenPreviewsShowSubtitle])
 
         var categories = existingCategories
         categories.insert(category)
@@ -55,6 +74,8 @@ class NotificationManager: NSObject {
 
         let categoryIdentifiers = categories.map { $0.identifier }.joined(separator: ", ")
         CAPLog.print("[AlarmPlugin] Added new category \(categoryIdentifier). Notification categories are now: \(categoryIdentifiers)")
+
+        return categoryIdentifier
     }
     
     private func makeImageAttachment(from imagePath: String, withId attachmentId: String = "image") -> UNNotificationAttachment? {
@@ -107,13 +128,11 @@ class NotificationManager: NSObject {
             }
         }
         
-        if let stopButtonTitle = notificationSettings.stopButton {
-            let categoryIdentifier = "\(NotificationManager.categoryWithActionIdentifierPrefix)\(stopButtonTitle)"
-            await registerCategoryIfNeeded(forActionTitle: stopButtonTitle)
-            content.categoryIdentifier = categoryIdentifier
-        } else {
-            content.categoryIdentifier = NotificationManager.categoryWithoutActionIdentifier
-        }
+        let categoryIdentifier = await registerCategoryIfNeeded(
+            stopTitle: notificationSettings.stopButton,
+            snoozeTitle: notificationSettings.snoozeButton
+        )
+        content.categoryIdentifier = categoryIdentifier
 
         let request = UNNotificationRequest(identifier: "\(NotificationManager.notificationIdentifierPrefix)\(id)", content: content, trigger: nil)
         do {
@@ -155,6 +174,15 @@ class NotificationManager: NSObject {
         guard let id = notification.request.content.userInfo[NotificationManager.userInfoAlarmIdKey] as? Int else { return }
 
         switch identifier {
+        case NotificationManager.snoozeActionIdentifier:
+            CAPLog.print("[AlarmPlugin] Snooze action triggered for notification: \(notification.request.identifier)")
+            guard let plugin = self.plugin else {
+                CAPLog.print("[AlarmPlugin] Alarm plugin not available.")
+                return
+            }
+            Task {
+                await plugin.snoozeAlarmInternal(alarmId: id)
+            }
         case NotificationManager.stopActionIdentifier:
             CAPLog.print("[AlarmPlugin] Stop action triggered for notification: \(notification.request.identifier)")
             guard let plugin = self.plugin else {
@@ -165,15 +193,14 @@ class NotificationManager: NSObject {
                 await plugin.stopAlarmInternal(alarmId: id)
             }
         case UNNotificationDefaultActionIdentifier:
-                // Handle notification tap (when user taps the notification itself)
-                CAPLog.print("[AlarmPlugin] Default action (notification tap) triggered for notification: \(notification.request.identifier)")
-                guard let plugin = self.plugin else {
-                    CAPLog.print("[AlarmPlugin] Alarm plugin not available.")
-                    return
-                }
-                Task {
-                    await plugin.stopAlarmInternal(alarmId: id)
-                }
+            CAPLog.print("[AlarmPlugin] Default action (notification tap) triggered for notification: \(notification.request.identifier)")
+            guard let plugin = self.plugin else {
+                CAPLog.print("[AlarmPlugin] Alarm plugin not available.")
+                return
+            }
+            Task {
+                await plugin.stopAlarmInternal(alarmId: id)
+            }
         default:
             break
         }

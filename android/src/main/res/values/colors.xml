@@ -10,6 +10,9 @@
     <!-- Button Colors -->
     <color name="alarm_button_dismiss">#f44336</color>
     <color name="alarm_button_dismiss_pressed">#d32f2f</color>
+    <color name="alarm_button_snooze">#E0E0E0</color>
+    <color name="alarm_button_snooze_pressed">#BDBDBD</color>
+    <color name="alarm_button_snooze_text">#1a1a1a</color>
 
     <!-- Accent Colors -->
     <color name="alarm_accent">#2196F3</color>
