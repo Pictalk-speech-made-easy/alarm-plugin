@@ -8,6 +8,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import com.getcapacitor.Logger
 import org.pictalk.plugin.alarm.services.AlarmStorage
+import org.pictalk.plugin.alarm.services.WallClock
+import java.util.Date
+import java.util.TimeZone
 
 class BootReceiver : BroadcastReceiver() {
     companion object {
@@ -15,15 +18,31 @@ class BootReceiver : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            Logger.debug(TAG, "Device rebooted, rescheduling alarms")
-            rescheduleAlarms(context)
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED -> {
+                Logger.debug(TAG, "Device rebooted, rescheduling alarms")
+                rescheduleAlarms(context, onlyMoved = false)
+            }
+            Intent.ACTION_TIMEZONE_CHANGED -> {
+                Logger.debug(TAG, "Time zone changed to ${TimeZone.getDefault().id}, moving alarms")
+                rescheduleAlarms(context, onlyMoved = true)
+            }
         }
     }
 
-    private fun rescheduleAlarms(context: Context) {
+    // Alarms keep their wall clock: one set for 9:00 in Paris rings at 9:00 in New York, like the events behind them.
+    private fun rescheduleAlarms(context: Context, onlyMoved: Boolean) {
         val alarmStorage = AlarmStorage(context)
+        val here = TimeZone.getDefault()
         val storedAlarms = alarmStorage.getSavedAlarms()
+            .filter { it.id !in AlarmService.ringingAlarmIds }
+            .map { alarm ->
+                val from = alarmStorage.getAlarmZone(alarm.id)
+                val moved = from != null && from.id != here.id
+                Pair(if (moved) alarm.copy(dateTime = Date(WallClock.shift(alarm.dateTime.time, from!!, here))) else alarm, moved)
+            }
+            .filter { (_, moved) -> moved || !onlyMoved }
+            .map { (alarm, _) -> alarm }
 
         Logger.info(TAG, "Rescheduling ${storedAlarms.size} alarms")
 

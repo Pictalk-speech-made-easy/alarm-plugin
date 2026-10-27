@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import java.util.TimeZone
 
 const val SHARED_PREFERENCES_NAME = "AlarmSharedPreferences"
 
@@ -24,6 +25,8 @@ class AlarmStorage(context: Context) {
     companion object {
         private const val TAG = "AlarmStorage"
         private const val PREFIX = "__alarm_id__"
+        // The zone an alarm was scheduled in, to move it when the phone changes zone (not under PREFIX: getSavedAlarms reads those).
+        private const val ZONE_PREFIX = "__alarm_zone__"
     }
 
     private val dataStore = context.dataStore
@@ -32,14 +35,27 @@ class AlarmStorage(context: Context) {
         return runBlocking {
             val key = stringPreferencesKey("$PREFIX${alarmSettings.id}")
             val value = Json.encodeToString(alarmSettings)
-            dataStore.edit { preferences -> preferences[key] = value }
+            dataStore.edit { preferences ->
+                preferences[key] = value
+                preferences[stringPreferencesKey("$ZONE_PREFIX${alarmSettings.id}")] = TimeZone.getDefault().id
+            }
         }
     }
 
     fun unsaveAlarm(id: Int) {
         return runBlocking {
             val key = stringPreferencesKey("$PREFIX$id")
-            dataStore.edit { preferences -> preferences.remove(key) }
+            dataStore.edit { preferences ->
+                preferences.remove(key)
+                preferences.remove(stringPreferencesKey("$ZONE_PREFIX$id"))
+            }
+        }
+    }
+
+    /** Null for alarms saved before the zone was kept. */
+    fun getAlarmZone(id: Int): TimeZone? {
+        return runBlocking {
+            dataStore.data.first()[stringPreferencesKey("$ZONE_PREFIX$id")]?.let { TimeZone.getTimeZone(it) }
         }
     }
 
