@@ -29,7 +29,9 @@ data class AlarmSettings(
     val allowAlarmOverlap: Boolean = false, // Defaults to false for backward compatibility
     val androidStopAlarmOnTermination: Boolean = true, // Defaults to true for backward compatibility
     val snoozeDurationMinutes: Int = 5,
-    val payload: String? = null // Optional payload data
+    val payload: String? = null, // Optional payload data
+    val ringDurationSeconds: Int = 0,
+    val speech: SpeechSettings? = null
 ) {
     companion object {
         /**
@@ -84,6 +86,8 @@ data class AlarmSettings(
             val androidStopAlarmOnTermination = json.primitiveBoolean("androidStopAlarmOnTermination") ?: true
             val snoozeDurationMinutes = json.primitiveInt("snoozeDurationMinutes") ?: 5
             val payload = json.primitiveString("payload")
+            val ringDurationSeconds = json.primitiveInt("ringDurationSeconds") ?: 0
+            val speech = json["speech"]?.let { Json { ignoreUnknownKeys = true }.decodeFromJsonElement<SpeechSettings>(it) }
 
             // Handle volumeSettings with defaults
             val volumeSettings = json["volumeSettings"]?.let {
@@ -108,7 +112,9 @@ data class AlarmSettings(
                 allowAlarmOverlap = allowAlarmOverlap,
                 androidStopAlarmOnTermination = androidStopAlarmOnTermination,
                 snoozeDurationMinutes = snoozeDurationMinutes,
-                payload = payload
+                payload = payload,
+                ringDurationSeconds = ringDurationSeconds,
+                speech = speech
             )
         }
 
@@ -143,9 +149,19 @@ data class AlarmSettings(
             put("androidStopAlarmOnTermination", androidStopAlarmOnTermination)
             put("snoozeDurationMinutes", snoozeDurationMinutes)
             payload?.let { put("payload", it) }
+            put("ringDurationSeconds", ringDurationSeconds)
+            speech?.let { put("speech", Json.encodeToJsonElement(it)) }
         }
     }
 }
+
+@Serializable
+data class SpeechSettings(
+    val text: String,
+    val locale: String? = null,
+    val rate: Double = 1.0,
+    val repeatSeconds: Int = 10
+)
 
 /**
  * Custom serializer for Java's `Date` type.

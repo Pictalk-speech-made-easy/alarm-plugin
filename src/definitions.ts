@@ -166,6 +166,44 @@ export interface AlarmSettings {
    * Optional payload data
    */
   payload?: string;
+
+  /**
+   * Seconds of full-volume ringing before the alarm stops on its own; the fade-in and speech pauses don't count.
+   * 0 rings until stopped.
+   * @default 0
+   */
+  ringDurationSeconds?: number;
+
+  /**
+   * Text said before the sound starts, then again while it rings
+   */
+  speech?: SpeechSettings;
+}
+
+export interface SpeechSettings {
+  text: string;
+
+  /**
+   * BCP 47 language tag
+   */
+  locale?: string;
+
+  /**
+   * iOS voice identifier, used when it speaks `locale`; ignored on Android
+   */
+  voice?: string;
+
+  /**
+   * 1 is the engine's normal speed
+   * @default 1
+   */
+  rate?: number;
+
+  /**
+   * Seconds of ringing between repeats; 0 says it once
+   * @default 10
+   */
+  repeatSeconds?: number;
 }
 
 export interface VolumeSettings {

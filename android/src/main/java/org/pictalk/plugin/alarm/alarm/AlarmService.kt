@@ -12,7 +12,10 @@ import android.app.Notification
 import android.content.Intent
 import android.content.Context
 import android.content.pm.ServiceInfo
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.os.SystemClock
 import android.os.PowerManager
 import android.os.Build
 import com.getcapacitor.Logger
@@ -23,6 +26,7 @@ import org.pictalk.plugin.alarm.models.AlarmSettings
 import org.pictalk.plugin.alarm.services.AlarmRingingLiveData
 import org.pictalk.plugin.alarm.services.NotificationHandler
 import org.pictalk.plugin.alarm.services.NotificationOnKillService
+import org.pictalk.plugin.alarm.services.SpeechService
 import org.pictalk.plugin.alarm.AlarmPlugin
 
 class AlarmService : Service() {
@@ -33,6 +37,8 @@ class AlarmService : Service() {
 
         @JvmStatic
         var ringingAlarmIds: List<Int> = listOf()
+
+        private const val TICK_MS = 250L
     }
 
     private var alarmId: Int = 0
@@ -42,6 +48,8 @@ class AlarmService : Service() {
     private var alarmStorage: AlarmStorage? = null
     private var showSystemUI: Boolean = true
     private var shouldStopAlarmOnTermination: Boolean = true
+    private var speechService: SpeechService? = null
+    private val ringHandler = Handler(Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -156,17 +164,16 @@ class AlarmService : Service() {
             }
         }
 
-        // Play the alarm audio
-        audioService?.playAudio(
-            id,
-            alarmSettings.assetAudioPath,
-            alarmSettings.loopAudio,
-            alarmSettings.volumeSettings.fadeDuration,
-            alarmSettings.volumeSettings.fadeSteps
-        )
-
-        // Update the list of ringing alarms
-        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
+        // The title is said before the sound starts, so pausing never cuts the fade-in short.
+        stopRingTimer()
+        speechService?.shutdown()
+        speechService = alarmSettings.speech?.let { SpeechService(this, it) }
+        val speech = speechService
+        if (speech != null) {
+            speech.speak { startRinging(id, alarmSettings) }
+        } else {
+            startRinging(id, alarmSettings)
+        }
 
         // Start vibration if enabled
         if (alarmSettings.vibrate) {
@@ -196,6 +203,61 @@ class AlarmService : Service() {
         }
 
         return START_STICKY
+    }
+
+    private fun startRinging(id: Int, alarmSettings: AlarmSettings) {
+        audioService?.playAudio(
+            id,
+            alarmSettings.assetAudioPath,
+            alarmSettings.loopAudio,
+            alarmSettings.volumeSettings.fadeDuration,
+            alarmSettings.volumeSettings.fadeSteps
+        )
+        ringingAlarmIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
+        startRingTimer(id, alarmSettings)
+    }
+
+    /** Counts only full-volume ringing: the fade-in and the pauses to speak don't count. */
+    private fun startRingTimer(id: Int, alarmSettings: AlarmSettings) {
+        val durationMs = alarmSettings.ringDurationSeconds * 1000L
+        val speech = speechService
+        if (durationMs <= 0 && speech == null) return
+
+        val volume = alarmSettings.volumeSettings
+        val fadeMs = volume.fadeSteps.lastOrNull()?.time?.inWholeMilliseconds
+            ?: volume.fadeDuration?.inWholeMilliseconds ?: 0L
+        val repeatMs = (alarmSettings.speech?.repeatSeconds ?: 0) * 1000L
+        val startedAt = SystemClock.elapsedRealtime()
+        var rangMs = 0L
+        var sinceSpokenMs = 0L
+        var speaking = false
+
+        ringHandler.post(object : Runnable {
+            override fun run() {
+                if (!speaking && SystemClock.elapsedRealtime() - startedAt >= fadeMs) {
+                    rangMs += TICK_MS
+                    sinceSpokenMs += TICK_MS
+                    if (durationMs > 0 && rangMs >= durationMs) {
+                        unsaveAlarm(id)
+                        return
+                    }
+                    if (speech != null && repeatMs > 0 && sinceSpokenMs >= repeatMs) {
+                        sinceSpokenMs = 0
+                        speaking = true
+                        audioService?.pauseAudio(id)
+                        speech.speak {
+                            audioService?.resumeAudio(id)
+                            speaking = false
+                        }
+                    }
+                }
+                ringHandler.postDelayed(this, TICK_MS)
+            }
+        })
+    }
+
+    private fun stopRingTimer() {
+        ringHandler.removeCallbacksAndMessages(null)
     }
 
     private fun createFullScreenIntent(alarmSettings: AlarmSettings): PendingIntent {
@@ -269,6 +331,10 @@ class AlarmService : Service() {
 
     private fun stopAlarm(id: Int) {
         AlarmRingingLiveData.instance.update(false)
+        stopRingTimer()
+        speechService?.shutdown()
+        speechService = null
+        AlarmAlertFullScreen.instance?.closeFor(id)
         try {
             val playingIds = audioService?.getPlayingMediaPlayersIds() ?: listOf()
             ringingAlarmIds = playingIds
@@ -295,6 +361,8 @@ class AlarmService : Service() {
 
     override fun onDestroy() {
         ringingAlarmIds = listOf()
+        stopRingTimer()
+        speechService?.shutdown()
 
         audioService?.cleanUp()
         vibrationService?.stopVibrating()

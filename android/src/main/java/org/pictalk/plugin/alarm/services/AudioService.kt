@@ -97,6 +97,14 @@ class AudioService(private val context: Context) {
         }
     }
 
+    fun pauseAudio(id: Int) {
+        mediaPlayers[id]?.takeIf { it.isPlaying }?.pause()
+    }
+
+    fun resumeAudio(id: Int) {
+        mediaPlayers[id]?.takeIf { !it.isPlaying }?.start()
+    }
+
     fun stopAudio(id: Int) {
         timers[id]?.cancel()
         timers.remove(id)

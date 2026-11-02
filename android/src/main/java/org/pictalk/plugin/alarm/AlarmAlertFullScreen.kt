@@ -34,6 +34,8 @@ class AlarmAlertFullScreen : FragmentActivity() {
         private const val TAG = "AlarmAlertFullScreen"
         const val EXTRA_ALARM_ID = "alarm_id"
         const val EXTRA_ALARM_SETTINGS = "alarm_settings"
+
+        var instance: AlarmAlertFullScreen? = null
     }
 
     private var alarmId: Int = -1
@@ -41,6 +43,7 @@ class AlarmAlertFullScreen : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
 
         // Set orientation based on device type
         requestedOrientation = if (isTablet()) {
@@ -297,8 +300,14 @@ class AlarmAlertFullScreen : FragmentActivity() {
         // User must explicitly dismiss or snooze
     }
 
+    /** The alarm stopped without this screen (ring duration over, notification action). */
+    fun closeFor(id: Int) {
+        if (id == alarmId) finish()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        if (instance === this) instance = null
         Logger.debug(TAG, "AlarmAlertFullScreen destroyed")
     }
 }
