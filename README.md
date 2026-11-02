@@ -6,9 +6,35 @@ This plugins allow Capacitor to manage alarms. Heavily (almost entirely) inspire
 
 ```bash
 export JAVA_HOME=/Applications/Android\ Studio.app/Contents/jbr/Contents/Home
-npm install alarm
+npm install @pictalk-speech-made-easy/alarm
 npx cap sync
 ```
+
+## Ring duration and spoken title
+
+By default an alarm rings until it is stopped. Set `ringDurationSeconds` to stop it on its own, and `speech` to have a text said aloud:
+
+```ts
+await Alarm.setAlarm({
+  alarmSettings: {
+    id: 42,
+    dateTime: '2026-11-02T08:00:00.000Z',
+    assetAudioPath: 'public/sounds/alarm.mp3',
+    volumeSettings: { volume: 1, fadeDuration: 5000 },
+    notificationSettings: { title: 'Swimming pool', body: '', stopButton: 'Stop' },
+    ringDurationSeconds: 15,
+    speech: { text: 'Swimming pool', locale: 'fr-FR' },
+  },
+});
+```
+
+- The text is said before the sound starts, then again every `repeatSeconds` (10 by default, 0 to say it once) of ringing, with the sound paused while it speaks.
+- Only full-volume ringing counts toward `ringDurationSeconds`: neither the fade-in nor the pauses to speak do. When it runs out, the alarm stops as if Stop was pressed (`alarmStopped` is sent) and the Android full-screen alert closes.
+- Android uses the device's text-to-speech engine at alarm volume; `voice` is ignored there. iOS uses `AVSpeechSynthesizer`, so like the alarm sound it needs the app to be alive.
+
+### Other notifications on iOS
+
+The plugin is the app's `UNUserNotificationCenter` delegate. It handles its own alarm notifications and hands every other notification to the delegate that was set before it (Capacitor's), so `@capacitor/local-notifications` and push plugins still receive foreground notifications and taps.
 
 ## API
 
@@ -237,22 +263,24 @@ Remove all listeners for this plugin
 
 #### AlarmSettings
 
-| Prop                                | Type                                                                  | Description                                               | Default            |
-| ----------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------- | ------------------ |
-| **`id`**                            | <code>number</code>                                                   | Unique identifier of the alarm                            |                    |
-| **`dateTime`**                      | <code>string</code>                                                   | The date and time when the alarm should ring (ISO string) |                    |
-| **`assetAudioPath`**                | <code>string</code>                                                   | The path to audio asset for the alarm ringtone            |                    |
-| **`volumeSettings`**                | <code><a href="#volumesettings">VolumeSettings</a></code>             | Volume settings for the alarm                             |                    |
-| **`notificationSettings`**          | <code><a href="#notificationsettings">NotificationSettings</a></code> | Notification settings for the alarm                       |                    |
-| **`loopAudio`**                     | <code>boolean</code>                                                  | Whether to loop the audio indefinitely                    | <code>true</code>  |
-| **`vibrate`**                       | <code>boolean</code>                                                  | Whether to vibrate when alarm rings                       | <code>true</code>  |
-| **`warningNotificationOnKill`**     | <code>boolean</code>                                                  | Whether to show warning notification when app is killed   | <code>true</code>  |
-| **`androidFullScreenIntent`**       | <code>boolean</code>                                                  | Whether to use full screen intent on Android              | <code>true</code>  |
-| **`allowAlarmOverlap`**             | <code>boolean</code>                                                  | Whether to allow alarm overlap                            | <code>false</code> |
-| **`iOSBackgroundAudio`**            | <code>boolean</code>                                                  | Whether to enable background audio on iOS                 | <code>true</code>  |
-| **`androidStopAlarmOnTermination`** | <code>boolean</code>                                                  | Whether to stop alarm when Android task is terminated     | <code>true</code>  |
-| **`snoozeDurationMinutes`**         | <code>number</code>                                                   | Duration in minutes for the snooze interval               | <code>5</code>     |
-| **`payload`**                       | <code>string</code>                                                   | Optional payload data                                     |                    |
+| Prop                                | Type                                                                  | Description                                                                                                                         | Default            |
+| ----------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| **`id`**                            | <code>number</code>                                                   | Unique identifier of the alarm                                                                                                      |                    |
+| **`dateTime`**                      | <code>string</code>                                                   | The date and time when the alarm should ring (ISO string)                                                                           |                    |
+| **`assetAudioPath`**                | <code>string</code>                                                   | The path to audio asset for the alarm ringtone                                                                                      |                    |
+| **`volumeSettings`**                | <code><a href="#volumesettings">VolumeSettings</a></code>             | Volume settings for the alarm                                                                                                       |                    |
+| **`notificationSettings`**          | <code><a href="#notificationsettings">NotificationSettings</a></code> | Notification settings for the alarm                                                                                                 |                    |
+| **`loopAudio`**                     | <code>boolean</code>                                                  | Whether to loop the audio indefinitely                                                                                              | <code>true</code>  |
+| **`vibrate`**                       | <code>boolean</code>                                                  | Whether to vibrate when alarm rings                                                                                                 | <code>true</code>  |
+| **`warningNotificationOnKill`**     | <code>boolean</code>                                                  | Whether to show warning notification when app is killed                                                                             | <code>true</code>  |
+| **`androidFullScreenIntent`**       | <code>boolean</code>                                                  | Whether to use full screen intent on Android                                                                                        | <code>true</code>  |
+| **`allowAlarmOverlap`**             | <code>boolean</code>                                                  | Whether to allow alarm overlap                                                                                                      | <code>false</code> |
+| **`iOSBackgroundAudio`**            | <code>boolean</code>                                                  | Whether to enable background audio on iOS                                                                                           | <code>true</code>  |
+| **`androidStopAlarmOnTermination`** | <code>boolean</code>                                                  | Whether to stop alarm when Android task is terminated                                                                               | <code>true</code>  |
+| **`snoozeDurationMinutes`**         | <code>number</code>                                                   | Duration in minutes for the snooze interval                                                                                         | <code>5</code>     |
+| **`payload`**                       | <code>string</code>                                                   | Optional payload data                                                                                                               |                    |
+| **`ringDurationSeconds`**           | <code>number</code>                                                   | Seconds of full-volume ringing before the alarm stops on its own; the fade-in and speech pauses don't count. 0 rings until stopped. | <code>0</code>     |
+| **`speech`**                        | <code><a href="#speechsettings">SpeechSettings</a></code>             | Text said before the sound starts, then again while it rings                                                                        |                    |
 
 
 #### VolumeSettings
@@ -284,6 +312,17 @@ Remove all listeners for this plugin
 | **`icon`**         | <code>string</code> | Icon name for the notification (Android only)               |
 | **`iconColor`**    | <code>string</code> | Color of the notification icon as hex string (Android only) |
 | **`image`**        | <code>string</code> | Image to show in the notification                           |
+
+
+#### SpeechSettings
+
+| Prop                | Type                | Description                                                            | Default         |
+| ------------------- | ------------------- | ---------------------------------------------------------------------- | --------------- |
+| **`text`**          | <code>string</code> | Text to say, for example the event's title                             |                 |
+| **`locale`**        | <code>string</code> | BCP 47 language tag                                                    |                 |
+| **`voice`**         | <code>string</code> | iOS voice identifier, used when it speaks `locale`; ignored on Android |                 |
+| **`rate`**          | <code>number</code> | 1 is the engine's normal speed                                         | <code>1</code>  |
+| **`repeatSeconds`** | <code>number</code> | Seconds of ringing between repeats; 0 says it once                     | <code>10</code> |
 
 
 #### PermissionStatus

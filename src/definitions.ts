@@ -181,6 +181,9 @@ export interface AlarmSettings {
 }
 
 export interface SpeechSettings {
+  /**
+   * Text to say, for example the event's title
+   */
   text: string;
 
   /**
