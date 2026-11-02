@@ -213,11 +213,13 @@ class AlarmManager: NSObject {
             assetAudioPath: config.settings.assetAudioPath,
             loopAudio: config.settings.loopAudio,
             volumeSettings: config.settings.volumeSettings,
-            onComplete: config.settings.loopAudio ? { [weak self] in
+            ringDurationSeconds: config.settings.ringDurationSeconds,
+            speech: config.settings.speech,
+            onComplete: { [weak self] in
                 Task {
                     await self?.stopAlarm(id: id, cancelNotif: false)
                 }
-            } : nil)
+            })
 
         self.updateState()
 

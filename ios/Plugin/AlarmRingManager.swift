@@ -8,12 +8,19 @@ class AlarmRingManager: NSObject {
     private var previousVolume: Float?
     private var volumeEnforcementTimer: Timer?
     private var audioPlayer: AVAudioPlayer?
+    private var speaker: AlarmSpeaker?
+    private var ringTimer: Timer?
+    private var ringStartedAt = Date()
+    private var rangSeconds: TimeInterval = 0
+    private var sinceSpokenSeconds: TimeInterval = 0
+    private var speaking = false
+    private static let tick: TimeInterval = 0.25
 
     override private init() {
         super.init()
     }
 
-    func start(assetAudioPath: String, loopAudio: Bool, volumeSettings: VolumeSettings, onComplete: (() -> Void)?) async {
+    func start(assetAudioPath: String, loopAudio: Bool, volumeSettings: VolumeSettings, ringDurationSeconds: Int, speech: SpeechSettings?, onComplete: (() -> Void)?) async {
         let start = Date()
 
         self.duckOtherAudios()
@@ -30,6 +37,15 @@ class AlarmRingManager: NSObject {
             self.volumeEnforcementTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
                 AlarmRingManager.shared.enforcementTimerTriggered(targetSystemVolume: targetSystemVolume)
             }
+        }
+
+        // The title is said before the sound starts, so pausing never cuts the fade-in short.
+        if let speech = speech {
+            let speaker = AlarmSpeaker(settings: speech)
+            self.speaker = speaker
+            await self.say(speaker)
+            // Stopped while speaking.
+            guard self.speaker === speaker else { return }
         }
 
         guard let audioPlayer = self.loadAudioPlayer(assetAudioPath: assetAudioPath) else {
@@ -61,11 +77,75 @@ class AlarmRingManager: NSObject {
             }
         }
 
+        let fadeSeconds = volumeSettings.fadeSteps.last?.time ?? volumeSettings.fadeDuration ?? 0
+        await self.startRingTimer(
+            fadeSeconds: fadeSeconds,
+            durationSeconds: TimeInterval(ringDurationSeconds),
+            repeatSeconds: TimeInterval(speech?.repeatSeconds ?? 0),
+            onComplete: onComplete
+        )
+
         let runDuration = Date().timeIntervalSince(start)
         CAPLog.print("[AlarmPlugin] Alarm ring started in \(String(format: "%.2f", runDuration))s.")
     }
 
+    @MainActor
+    private func say(_ speaker: AlarmSpeaker) async {
+        await withCheckedContinuation { continuation in
+            speaker.speak { continuation.resume() }
+        }
+    }
+
+    /// Counts only full-volume ringing: the fade-in and the pauses to speak don't count.
+    @MainActor
+    private func startRingTimer(fadeSeconds: TimeInterval, durationSeconds: TimeInterval, repeatSeconds: TimeInterval, onComplete: (() -> Void)?) {
+        self.ringTimer?.invalidate()
+        guard durationSeconds > 0 || (self.speaker != nil && repeatSeconds > 0) else { return }
+
+        self.ringStartedAt = Date()
+        self.rangSeconds = 0
+        self.sinceSpokenSeconds = 0
+        self.speaking = false
+        self.ringTimer = Timer.scheduledTimer(withTimeInterval: Self.tick, repeats: true) { _ in
+            AlarmRingManager.shared.ringTimerTriggered(
+                fadeSeconds: fadeSeconds, durationSeconds: durationSeconds, repeatSeconds: repeatSeconds, onComplete: onComplete
+            )
+        }
+    }
+
+    private func ringTimerTriggered(fadeSeconds: TimeInterval, durationSeconds: TimeInterval, repeatSeconds: TimeInterval, onComplete: (() -> Void)?) {
+        if self.speaking || Date().timeIntervalSince(self.ringStartedAt) < fadeSeconds { return }
+
+        self.rangSeconds += Self.tick
+        self.sinceSpokenSeconds += Self.tick
+        if durationSeconds > 0 && self.rangSeconds >= durationSeconds {
+            self.ringTimer?.invalidate()
+            self.ringTimer = nil
+            onComplete?()
+            return
+        }
+        if let speaker = self.speaker, repeatSeconds > 0, self.sinceSpokenSeconds >= repeatSeconds {
+            self.sinceSpokenSeconds = 0
+            self.speaking = true
+            self.audioPlayer?.pause()
+            speaker.speak {
+                // Stopped while speaking.
+                guard self.speaker === speaker else { return }
+                self.audioPlayer?.play()
+                self.speaking = false
+            }
+        }
+    }
+
     func stop() async {
+        let speaker = self.speaker
+        self.speaker = nil
+        await MainActor.run {
+            self.ringTimer?.invalidate()
+            self.ringTimer = nil
+            speaker?.stop()
+        }
+
         if self.volumeEnforcementTimer == nil && self.previousVolume == nil && self.audioPlayer == nil {
             CAPLog.print("[AlarmPlugin] Alarm ringer already stopped.")
             return

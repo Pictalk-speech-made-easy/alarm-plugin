@@ -16,12 +16,14 @@ struct AlarmSettings: Codable {
     let androidStopAlarmOnTermination: Bool
     let snoozeDurationMinutes: Int
     let payload: String?
+    let ringDurationSeconds: Int
+    let speech: SpeechSettings?
 
     enum CodingKeys: String, CodingKey {
         case id, dateTime, assetAudioPath, volumeSettings, notificationSettings,
              loopAudio, vibrate, warningNotificationOnKill, androidFullScreenIntent,
              allowAlarmOverlap, iOSBackgroundAudio, androidStopAlarmOnTermination,
-             snoozeDurationMinutes, payload
+             snoozeDurationMinutes, payload, ringDurationSeconds, speech
     }
 
     /// Custom initializer to handle backward compatibility for older models
@@ -44,6 +46,8 @@ struct AlarmSettings: Codable {
         androidStopAlarmOnTermination = try container.decodeIfPresent(Bool.self, forKey: .androidStopAlarmOnTermination) ?? true
         snoozeDurationMinutes = try container.decodeIfPresent(Int.self, forKey: .snoozeDurationMinutes) ?? 5
         payload = try container.decodeIfPresent(String.self, forKey: .payload)
+        ringDurationSeconds = try container.decodeIfPresent(Int.self, forKey: .ringDurationSeconds) ?? 0
+        speech = try container.decodeIfPresent(SpeechSettings.self, forKey: .speech)
 
         // Decode volume settings (with backward compatibility)
         volumeSettings = try container.decode(VolumeSettings.self, forKey: .volumeSettings)
@@ -67,6 +71,8 @@ struct AlarmSettings: Codable {
         try container.encode(androidStopAlarmOnTermination, forKey: .androidStopAlarmOnTermination)
         try container.encode(snoozeDurationMinutes, forKey: .snoozeDurationMinutes)
         try container.encodeIfPresent(payload, forKey: .payload)
+        try container.encode(ringDurationSeconds, forKey: .ringDurationSeconds)
+        try container.encodeIfPresent(speech, forKey: .speech)
     }
 
     /// Memberwise initializer
@@ -84,7 +90,9 @@ struct AlarmSettings: Codable {
         iOSBackgroundAudio: Bool = true,
         androidStopAlarmOnTermination: Bool = true,
         snoozeDurationMinutes: Int = 5,
-        payload: String? = nil
+        payload: String? = nil,
+        ringDurationSeconds: Int = 0,
+        speech: SpeechSettings? = nil
     ) {
         self.id = id
         self.dateTime = dateTime
@@ -100,6 +108,8 @@ struct AlarmSettings: Codable {
         self.androidStopAlarmOnTermination = androidStopAlarmOnTermination
         self.snoozeDurationMinutes = snoozeDurationMinutes
         self.payload = payload
+        self.ringDurationSeconds = ringDurationSeconds
+        self.speech = speech
     }
 
     /// Converts from Capacitor plugin call to AlarmSettings
@@ -168,7 +178,9 @@ struct AlarmSettings: Codable {
             iOSBackgroundAudio: alarmSettingsData["iOSBackgroundAudio"] as? Bool ?? true,
             androidStopAlarmOnTermination: alarmSettingsData["androidStopAlarmOnTermination"] as? Bool ?? true,
             snoozeDurationMinutes: alarmSettingsData["snoozeDurationMinutes"] as? Int ?? 5,
-            payload: alarmSettingsData["payload"] as? String
+            payload: alarmSettingsData["payload"] as? String,
+            ringDurationSeconds: alarmSettingsData["ringDurationSeconds"] as? Int ?? 0,
+            speech: (alarmSettingsData["speech"] as? [String: Any]).flatMap(SpeechSettings.from(data:))
         )
     }
     
@@ -193,7 +205,31 @@ struct AlarmSettings: Codable {
             "iOSBackgroundAudio": iOSBackgroundAudio,
             "androidStopAlarmOnTermination": androidStopAlarmOnTermination,
             "snoozeDurationMinutes": snoozeDurationMinutes,
-            "payload": payload as Any
+            "payload": payload as Any,
+            "ringDurationSeconds": ringDurationSeconds,
+            "speech": speech?.toDictionary() as Any
         ]
+    }
+}
+struct SpeechSettings: Codable {
+    let text: String
+    let locale: String?
+    let voice: String?
+    let rate: Double
+    let repeatSeconds: Int
+
+    static func from(data: [String: Any]) -> SpeechSettings? {
+        guard let text = data["text"] as? String else { return nil }
+        return SpeechSettings(
+            text: text,
+            locale: data["locale"] as? String,
+            voice: data["voice"] as? String,
+            rate: data["rate"] as? Double ?? 1,
+            repeatSeconds: data["repeatSeconds"] as? Int ?? 10
+        )
+    }
+
+    func toDictionary() -> [String: Any] {
+        return ["text": text, "locale": locale as Any, "voice": voice as Any, "rate": rate, "repeatSeconds": repeatSeconds]
     }
 }
