@@ -13,6 +13,8 @@ class NotificationManager: NSObject {
     private static let userInfoAlarmIdKey = "ALARM_ID"
 
     private var plugin: AlarmPlugin?
+    // Capacitor's notification router: LocalNotifications and push only hear what this delegate passes on.
+    weak var previousDelegate: UNUserNotificationCenterDelegate?
 
     override private init() {
         super.init()
@@ -239,7 +241,11 @@ class NotificationManager: NSObject {
 extension NotificationManager: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         if !isAlarmNotification(response.notification) {
-            completionHandler()
+            if let forward = previousDelegate?.userNotificationCenter(_:didReceive:withCompletionHandler:) {
+                forward(center, response, completionHandler)
+            } else {
+                completionHandler()
+            }
             return
         }
         handleAction(withIdentifier: response.actionIdentifier, for: response.notification)
@@ -247,6 +253,10 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if !isAlarmNotification(notification), let forward = previousDelegate?.userNotificationCenter(_:willPresent:withCompletionHandler:) {
+            forward(center, notification, completionHandler)
+            return
+        }
         completionHandler([.badge, .sound, .alert])
     }
 }

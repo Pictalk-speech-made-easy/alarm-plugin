@@ -35,7 +35,11 @@ public class AlarmPlugin: CAPPlugin, CAPBridgedPlugin {
         
         // Setup background task handling
         BackgroundTaskManager.setup()
-        UNUserNotificationCenter.current().delegate = NotificationManager.shared
+        let center = UNUserNotificationCenter.current()
+        if center.delegate !== NotificationManager.shared {
+            NotificationManager.shared.previousDelegate = center.delegate
+        }
+        center.delegate = NotificationManager.shared
 
         CAPLog.print("[AlarmPlugin] Plugin loaded successfully.")
     }
