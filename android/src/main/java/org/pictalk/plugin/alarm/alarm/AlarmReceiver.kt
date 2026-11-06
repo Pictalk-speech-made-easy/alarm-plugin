@@ -5,8 +5,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationManagerCompat
 import com.getcapacitor.Logger
 import org.pictalk.plugin.alarm.AlarmPlugin
+import org.pictalk.plugin.alarm.services.AlarmStorage
 
 class AlarmReceiver : BroadcastReceiver() {
     companion object {
@@ -22,10 +24,16 @@ class AlarmReceiver : BroadcastReceiver() {
         if (action == ACTION_ALARM_STOP) {
             val id = intent.getIntExtra("id", 0)
             Logger.debug("AlarmReceiver", "Received stop alarm command from notification, id: $id")
-            AlarmService.instance?.let {
-                it.handleStopAlarmCommand(id)
-                return
+            val service = AlarmService.instance
+            if (service != null) {
+                service.handleStopAlarmCommand(id)
+            } else if (id != 0) {
+                // Starting the service only to stop it would crash: without settings it never reaches startForeground.
+                NotificationManagerCompat.from(context).cancel(id)
+                AlarmStorage(context).unsaveAlarm(id)
+                AlarmPlugin.instance?.notifyAlarmStopped(id)
             }
+            return
         }
 
         /// Snooze alarm from notification snooze button.
